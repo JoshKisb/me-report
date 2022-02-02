@@ -1,0 +1,46 @@
+@import "~antd/dist/antd.css";
+@import "~bootstrap/scss/functions";
+
+
+@import "~bootstrap/scss/variables";
+@import "~bootstrap/scss/mixins";
+
+
+@import "~bootstrap/scss/root";
+@import "~bootstrap/scss/reboot";
+@import "~bootstrap/scss/type";
+@import "~bootstrap/scss/helpers";
+@import "~bootstrap/scss/containers";
+@import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/tables";
+@import "~bootstrap/scss/spinners";
+
+.topBar {
+	box-shadow: 0px 1px 5px 0px rgb(0 0 0 / 20%),
+		0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 3px 1px -2px rgb(0 0 0 / 12%);
+	border-radius: 4px;
+	width: 100%;
+	padding: 15px;
+}
+
+.report {
+	width: 100%;
+	flex: 1;
+	padding: 24px 15px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.report-table {
+	width: 100%;
+	border: none;
+}
+
+.loadingWrapper {
+	display: flex;
+	width: 100%;
+	padding: 18px;
+	justify-content: center;
+	align-items: center;
+}
