@@ -1,4 +1,6 @@
 const config = {
+    name: 'me-report',
+    title: 'M&E Report',
     type: 'app',
 
     entryPoints: {

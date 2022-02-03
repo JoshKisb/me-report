@@ -17,10 +17,9 @@ export const ReportTable = observer(() => {
 	const [indicators, setIndicators] = useState(["1"]);
 
 	useEffect(() => {
-		if (!store || !store.selectedObjective) return;
+		if (!store || !store.fieldsSelected) return;
 		setLoading(true);
 
-		console.log(store);
 		store
 			.fetchIndicators()
 			.then((indicators) => {
@@ -29,7 +28,7 @@ export const ReportTable = observer(() => {
 			.finally(() => {
 				setLoading(false);
 			});
-	}, [store?.selectedObjective]);
+	}, [store?.selectedObjective, store?.selectedOrgUnit, store?.selectedYear]);
 
 	return (
 		<div className="report">
@@ -39,18 +38,16 @@ export const ReportTable = observer(() => {
 						class="spinner-border"
 						style={{ width: "3rem", height: "3rem" }}
 						role="status"
-					>
-						
-					</div>
+					></div>
 				</div>
 			)}
 
-			{!store.selectedObjective && !loading && (
+			{!store.fieldsSelected && !loading && (
 				<h5 style={styles.noObjective}>
-					Select project and objective to view report
+					Select an organisation unit, project, objective and year<br /> to view report
 				</h5>
 			)}
-			{!!store.selectedObjective && !loading && (
+			{!!store.fieldsSelected && !loading && (
 				<table className="report-table table table-bordered">
 					<thead class="table-dark">
 						<tr>
@@ -75,7 +72,9 @@ export const ReportTable = observer(() => {
 								<td>0</td>
 								<td>{indicator.target}</td>
 								<td>{indicator.actual}</td>
-								<td class="table-success">{indicator.percentage}%</td>
+								<td style={{ backgroundColor: indicator.color }}>
+									{Math.round(indicator.percentage)}%
+								</td>
 								<td>{indicator.quartelyValues?.[1]}</td>
 								<td>{indicator.quartelyValues?.[2]}</td>
 								<td>{indicator.quartelyValues?.[3]}</td>

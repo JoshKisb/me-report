@@ -16,9 +16,16 @@ const styles = {
 	},
 };
 
+const reverseRange = (from, to) =>
+	[...Array(from - to)].map((_, i) => from - i);
+
 export const Toolbar = observer(() => {
 	const store = useStore();
 	const [objectives, setObjectives] = useState([]);
+	const years = reverseRange(new Date().getFullYear(), 2018).map((y) => ({
+		label: y,
+		value: y,
+	}));
 
 	const handleProjectSelect = (project) => {
 		if (project === store.selectedProject) return;
@@ -34,14 +41,14 @@ export const Toolbar = observer(() => {
 
 	return (
 		<div className="topBar">
-			<Row gutter={{ xs: 8, sm: 16, md: 24 }}>
-				{/*<Col className="gutter-row" xs={24} md={10}>
+			<Row gutter={{ xs: 8, sm: 16 }}>
+				<Col className="gutter-row" xs={24} md={7}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Organisation Unit</p>
 						<OrgUnitTree />
 					</div>
-				</Col>*/}
-				<Col className="gutter-row" xs={24} md={10} lg={8}>
+				</Col>
+				<Col className="gutter-row" xs={24} md={5}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Project</p>
 						<Select
@@ -63,7 +70,7 @@ export const Toolbar = observer(() => {
 						/>
 					</div>
 				</Col>
-				<Col className="gutter-row" xs={24} md={10} lg={8}>
+				<Col className="gutter-row" xs={24} md={8} lg={9}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Objective</p>
 						<Select
@@ -82,6 +89,18 @@ export const Toolbar = observer(() => {
 										.indexOf(input.toLowerCase()) >= 0
 								);
 							}}
+						/>
+					</div>
+				</Col>
+				<Col className="gutter-row" xs={24} md={4} lg={3}>
+					<div style={styles.selectBox}>
+						<p style={styles.label}>Selected Year</p>
+						<Select
+							placeholder="Select Year"
+							onChange={store.setSelectedYear}
+							allowClear={true}
+							options={years}
+							value={store.selectedYear}
 						/>
 					</div>
 				</Col>
