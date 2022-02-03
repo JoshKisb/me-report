@@ -91,7 +91,7 @@ export class Store {
 			const indicatorIds = indicators.map((indicator) => indicator.id);
 			const dx = indicatorIds.join(";");
 
-			const url = `/api/36/analytics?dimension=dx:${dx},pe:${year}Q1;${year}Q2;${year}Q3;${year}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
+			const url = `/api/36/analytics?dimension=dx:${dx},pe:${year}Q1;${year}Q2;${year}Q3;${year}Q4&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
 			const result = await this.engine.link.fetch(url);
 
 			console.log("Result", result);
