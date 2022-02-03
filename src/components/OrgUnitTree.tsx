@@ -27,7 +27,6 @@ export const OrgUnitTree = observer(() => {
 			<TreeSelect
 				allowClear={true}
 				treeDataSimpleMode
-				size="large"
 				style={{ width: "100%" }}
 				value={store.selectedOrgUnit}
 				dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
