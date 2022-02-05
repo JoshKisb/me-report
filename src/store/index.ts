@@ -40,7 +40,7 @@ export class Store {
 				resource: `indicatorGroups/${this.selectedObjective}.json`,
 				params: {
 					fields:
-						"indicators[name,id,code,legendSets[id,legends[endValue,color,displayName]]]",
+						"indicators[name,id,code,description,legendSets[id,legends[endValue,color,displayName]]]",
 					///api/29/indicators/fShDc5bXPDT.json?fields=legendSets[id,legends[endValue,color,displayName]]
 				},
 			},
@@ -75,13 +75,13 @@ export class Store {
 				const actMatch = indicator.name.match(actRe);
 
 				if (!!tagMatch) {
-					addIndicatorToMap(tagMatch[1], tagMatch[2], colors);
+					addIndicatorToMap(tagMatch[1], indicator.description, colors);
 					indicatorMap[tagMatch[1]].targetId = indicator.id;
 				} else if (!!actMatch) {
-					addIndicatorToMap(actMatch[1], actMatch[2], colors);
+					addIndicatorToMap(actMatch[1], indicator.description, colors);
 					indicatorMap[actMatch[1]].actualId = indicator.id;
 				} else {
-					addIndicatorToMap(indicator.code, indicator.name, colors);
+					addIndicatorToMap(indicator.code, indicator.description, colors);
 					indicatorMap[indicator.code].actualId = indicator.id;
 				}
 			});
