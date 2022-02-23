@@ -34,6 +34,10 @@ export class Store {
 		this.selectedYear = year;
 	};
 
+	getOrgUnitName = (orgUnit) => {
+		return this.userOrgUnits.find(org => org.id === orgUnit)?.name;
+	}
+
 	fetchIndicators = async () => {
 		const query = {
 			indicators: {
@@ -51,9 +55,9 @@ export class Store {
 
 			const indicators = data.indicators.indicators; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
 
-			const orgUnit = Array.isArray(this.selectedOrgUnit)
-				? this.selectedOrgUnit.join(";")
-				: this.selectedOrgUnit; //"K74ysFimUwH";
+			const orgUnits = Array.isArray(this.selectedOrgUnit)
+				? this.selectedOrgUnit
+				: [this.selectedOrgUnit]; //"K74ysFimUwH";
 
 			const years = Array.isArray(this.selectedYear)
 				? this.selectedYear
@@ -68,108 +72,132 @@ export class Store {
 
 			const periodStr = periods.join(";"); //"2021";
 
-			let indicatorMap = {};
-
-			const addIndicatorToMap = (key, name, colors) => {
-				if (!indicatorMap.hasOwnProperty(key)) {
-					indicatorMap[key] = {
-						name: name,
-						colors: colors,
-					};
-				}
-			};
-
-			const tagRe = /\s*TAG_(\w+)\s*-\s*(.*)/i;
-			const actRe = /\s*ACT_(\w+)\s*-\s*(.*)/i;
-			indicators.forEach((indicator) => {
-				const colorsUnsorted = indicator.legendSets?.[0]?.legends ?? [];
-				const colors = colorsUnsorted?.sort(
-					(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
-				);
-				const tagMatch = indicator.name.match(tagRe);
-				const actMatch = indicator.name.match(actRe);
-
-				if (!!tagMatch) {
-					addIndicatorToMap(tagMatch[1], indicator.description, colors);
-					indicatorMap[tagMatch[1]].targetId = indicator.id;
-				} else if (!!actMatch) {
-					addIndicatorToMap(actMatch[1], indicator.description, colors);
-					indicatorMap[actMatch[1]].actualId = indicator.id;
-				} else {
-					addIndicatorToMap(indicator.code, indicator.description, colors);
-					indicatorMap[indicator.code].actualId = indicator.id;
-				}
-			});
-
+			const indicatorMap = this._createIndicatorMap(indicators);
 			console.log("indicatorMap", indicatorMap);
 
 			const indicatorIds = indicators.map((indicator) => indicator.id);
 			const dx = indicatorIds.join(";");
 
-			const url = `/api/36/analytics?dimension=dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
-			const result = await this.engine.link.fetch(url);
+			let mappedIndicatorValues = [];
 
-			console.log("Result", result);
+			for (const orgUnit of orgUnits) {
+				const orgUnitName = this.getOrgUnitName(orgUnit);
+				const url = `/api/36/analytics?dimension=dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
+				const result = await this.engine.link.fetch(url);
 
-			const dxIndex = result.headers.findIndex((h: any) => h.name === "dx");
-			const peIndex = result.headers.findIndex((h: any) => h.name === "pe");
-			const valIndex = result.headers.findIndex(
-				(h: any) => h.name === "value"
-			);
+				console.log("Result", result);
 
-			const indicatorValues = Object.values(indicatorMap).map(
-				(indicator) => {
-					let qVals = [];
-					let totalActual = 0;
-					let totalTarget = 0;
+				const dxIndex = result.headers.findIndex(
+					(h: any) => h.name === "dx"
+				);
+				const peIndex = result.headers.findIndex(
+					(h: any) => h.name === "pe"
+				);
+				const valIndex = result.headers.findIndex(
+					(h: any) => h.name === "value"
+				);
 
-					periods.forEach((pe, idx) => {
-						const actualRow = result.rows.find(
-							(row) =>
-								row[dxIndex] === indicator.actualId &&
-								row[peIndex] === pe
-						);
-						qVals[idx] = parseFloat(actualRow?.[valIndex] || 0);
+				years.forEach((year) => {
+					const indicatorValues = Object.values(indicatorMap).map(
+						(indicator) => {
+							let qVals = [];
+							let totalActual = 0;
+							let totalTarget = 0;
 
-						totalActual += qVals[idx];
-						const targetRow = result.rows.find(
-							(row) =>
-								row[dxIndex] === indicator.targetId &&
-								row[peIndex] === pe
-						);
-						totalTarget += parseFloat(targetRow?.[valIndex] || 0);
+							for (let i = 0; i < 4; i++) {
+								const pe = `${year}Q${i + 1}`;
+								const actualRow = result.rows.find(
+									(row) =>
+										row[dxIndex] === indicator.actualId &&
+										row[peIndex] === pe
+								);
+								qVals[i] = parseFloat(actualRow?.[valIndex] || 0);
+
+								totalActual += qVals[i];
+								const targetRow = result.rows.find(
+									(row) =>
+										row[dxIndex] === indicator.targetId &&
+										row[peIndex] === pe
+								);
+								totalTarget += parseFloat(targetRow?.[valIndex] || 0);
+							}
+
+							const percentage =
+								totalActual === totalTarget
+									? 100
+									: (totalActual * 100) / (totalTarget || 1);
+
+							const color = indicator.colors?.find((c, index) => {
+								return (
+									percentage < parseFloat(c.endValue) ||
+									index == indicator.colors.length - 1
+								);
+							});
+
+							return {
+								id: indicator.actualId || indicator.targetId,
+								name: indicator.name,
+								quartelyValues: qVals,
+								target: totalTarget,
+								actual: totalActual,
+								percentage: percentage,
+								color: color?.color,
+							};
+						}
+					);
+
+					mappedIndicatorValues.push({
+						orgUnit: orgUnitName,
+						year,
+						values: indicatorValues,
+						key: `${orgUnit};${year}`
 					});
+				});
+			}
 
-					const percentage =
-						totalActual === totalTarget
-							? 100
-							: (totalActual * 100) / (totalTarget || 1);
+			console.log("mappedIndicatorValues", mappedIndicatorValues);
 
-					const color = indicator.colors?.find((c, index) => {
-						return (
-							percentage < parseFloat(c.endValue) ||
-							index == indicator.colors.length - 1
-						);
-					});
-
-					return {
-						id: indicator.actualId || indicator.targetId,
-						name: indicator.name,
-						quartelyValues: qVals,
-						target: totalTarget,
-						actual: totalActual,
-						percentage: percentage,
-						color: color?.color,
-					};
-				}
-			);
-
-			console.log(indicatorValues);
-
-			return indicatorValues;
+			return mappedIndicatorValues;
 		} catch (e) {
 			console.log("error", e);
 		}
+	};
+
+	_createIndicatorMap = (indicators: any) => {
+		let indicatorMap = {};
+
+		const addIndicatorToMap = (key, name, colors) => {
+			if (!indicatorMap.hasOwnProperty(key)) {
+				indicatorMap[key] = {
+					name: name,
+					colors: colors,
+				};
+			}
+		};
+
+		const tagRe = /\s*TAG_(\w+)\s*-\s*(.*)/i;
+		const actRe = /\s*ACT_(\w+)\s*-\s*(.*)/i;
+		indicators.forEach((indicator) => {
+			const colorsUnsorted = indicator.legendSets?.[0]?.legends ?? [];
+			const colors = colorsUnsorted?.sort(
+				(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
+			);
+			const tagMatch = indicator.name.match(tagRe);
+			const actMatch = indicator.name.match(actRe);
+
+			if (!!tagMatch) {
+				addIndicatorToMap(tagMatch[1], indicator.description, colors);
+				indicatorMap[tagMatch[1]].targetId = indicator.id;
+			} else if (!!actMatch) {
+				addIndicatorToMap(actMatch[1], indicator.description, colors);
+				indicatorMap[actMatch[1]].actualId = indicator.id;
+			} else {
+				addIndicatorToMap(indicator.code, indicator.description, colors);
+				indicatorMap[indicator.code].actualId = indicator.id;
+			}
+		});
+
+		return indicatorMap;
 	};
 
 	loadOrgUnitRoots = async () => {

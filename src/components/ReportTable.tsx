@@ -4,7 +4,7 @@ import { useStore } from "../store";
 import { CSVLink } from "react-csv";
 import { Button } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
-import { useStateWithCallbackLazy } from 'use-state-with-callback';
+import { useStateWithCallbackLazy } from "use-state-with-callback";
 
 const styles = {
 	noObjective: {
@@ -71,7 +71,53 @@ export const ReportTable = observer(() => {
 				if (!!btn) btn.link.click();
 				setLoadingCSV(false);
 			});
-			
+		}
+	};
+
+	const renderIndicatorTableCells = (indicator) => {
+		return (
+			<>
+				<td>{indicator.name}</td>
+				<td>0</td>
+				<td>{indicator.target}</td>
+				<td>{indicator.actual}</td>
+				<td style={{ backgroundColor: indicator.color }}>
+					{Math.round(indicator.percentage)}%
+				</td>
+				<td>{indicator.quartelyValues?.[1]}</td>
+				<td>{indicator.quartelyValues?.[2]}</td>
+				<td>{indicator.quartelyValues?.[3]}</td>
+				<td>{indicator.quartelyValues?.[4]}</td>
+			</>
+		);
+	};
+
+	const renderThematicRow = (area) => {
+		if (store.hasThematicAreas) {
+			return (
+				<>
+					<tr>
+						<td className="thematic-area" rowspan={area.values.length}>
+							<div>
+								<p>{area.orgUnit}</p>
+								<p>{area.year}</p>
+							</div>
+						</td>
+						{renderIndicatorTableCells(area.values[0])}
+					</tr>
+					{area.values.slice(1).map((indicator) => (
+						<tr key={indicator.id}>{renderIndicatorTableCells(indicator)}</tr>
+					))}
+				</>
+			);
+		} else {
+			return (
+				<>
+					{area.values.map((indicator) => (
+						<tr key={indicator.id}>{renderIndicatorTableCells(indicator)}</tr>
+					))}
+				</>
+			);
 		}
 	};
 
@@ -114,7 +160,7 @@ export const ReportTable = observer(() => {
 					<table className="report-table table table-bordered">
 						<thead class="table-dark">
 							<tr>
-
+								{store.hasThematicAreas && <th rowspan="2">Thematic Area</th>}
 								<th rowspan="2">Indicator (Code)</th>
 								<th rowspan="2">Baseline</th>
 								<th rowspan="2">Target</th>
@@ -130,20 +176,10 @@ export const ReportTable = observer(() => {
 							</tr>
 						</thead>
 						<tbody>
-							{indicators.map((indicator) => (
-								<tr key={indicator.id}>
-									<td>{indicator.name}</td>
-									<td>0</td>
-									<td>{indicator.target}</td>
-									<td>{indicator.actual}</td>
-									<td style={{ backgroundColor: indicator.color }}>
-										{Math.round(indicator.percentage)}%
-									</td>
-									<td>{indicator.quartelyValues?.[1]}</td>
-									<td>{indicator.quartelyValues?.[2]}</td>
-									<td>{indicator.quartelyValues?.[3]}</td>
-									<td>{indicator.quartelyValues?.[4]}</td>
-								</tr>
+							{indicators.map((area) => (
+								<React.Fragment key={area.key}>
+									{renderThematicRow(area)}
+								</React.Fragment>
 							))}
 						</tbody>
 					</table>
