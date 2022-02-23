@@ -93,7 +93,7 @@ export const ReportTable = observer(() => {
 					<br /> to view report
 				</h5>
 			)}
-			{!!store.fieldsSelected && !loading && (
+			{!!store.fieldsSelected && !loading && !!indicators && (
 				<div>
 					<CSVLink
 						ref={csvBtn}
@@ -114,6 +114,7 @@ export const ReportTable = observer(() => {
 					<table className="report-table table table-bordered">
 						<thead class="table-dark">
 							<tr>
+
 								<th rowspan="2">Indicator (Code)</th>
 								<th rowspan="2">Baseline</th>
 								<th rowspan="2">Target</th>

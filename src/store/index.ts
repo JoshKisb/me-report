@@ -50,18 +50,23 @@ export class Store {
 			console.log("fetchIndictors:", data);
 
 			const indicators = data.indicators.indicators; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
-			
+
 			const orgUnit = Array.isArray(this.selectedOrgUnit)
 				? this.selectedOrgUnit.join(";")
 				: this.selectedOrgUnit; //"K74ysFimUwH";
-			
+
 			const years = Array.isArray(this.selectedYear)
 				? this.selectedYear
 				: [this.selectedYear];
 
-			const periods = years
-				.map((year) => `${year}Q1;${year}Q2;${year}Q3;${year}Q4`)
-				.join(";"); //"2021";
+			const periods = years.flatMap((year) => [
+				`${year}Q1`,
+				`${year}Q2`,
+				`${year}Q3`,
+				`${year}Q4`,
+			]);
+
+			const periodStr = periods.join(";"); //"2021";
 
 			let indicatorMap = {};
 
@@ -101,7 +106,7 @@ export class Store {
 			const indicatorIds = indicators.map((indicator) => indicator.id);
 			const dx = indicatorIds.join(";");
 
-			const url = `/api/36/analytics?dimension=dx:${dx},pe:${periods}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
+			const url = `/api/36/analytics?dimension=dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
 			const result = await this.engine.link.fetch(url);
 
 			console.log("Result", result);
@@ -118,22 +123,22 @@ export class Store {
 					let totalActual = 0;
 					let totalTarget = 0;
 
-					for (let i = 1; i <= 4; i++) {
+					periods.forEach((pe, idx) => {
 						const actualRow = result.rows.find(
 							(row) =>
 								row[dxIndex] === indicator.actualId &&
-								row[peIndex] === `${year}Q${i}`
+								row[peIndex] === pe
 						);
-						qVals[i] = parseFloat(actualRow?.[valIndex] || 0);
+						qVals[idx] = parseFloat(actualRow?.[valIndex] || 0);
 
-						totalActual += qVals[i];
+						totalActual += qVals[idx];
 						const targetRow = result.rows.find(
 							(row) =>
 								row[dxIndex] === indicator.targetId &&
-								row[peIndex] === `${year}Q${i}`
+								row[peIndex] === pe
 						);
 						totalTarget += parseFloat(targetRow?.[valIndex] || 0);
-					}
+					});
 
 					const percentage =
 						totalActual === totalTarget
@@ -254,8 +259,8 @@ export class Store {
 	get fieldsSelected() {
 		return (
 			!!this.selectedObjective &&
-			!!this.selectedYear &&
-			!!this.selectedOrgUnit
+			!!this.selectedYear?.length &&
+			!!this.selectedOrgUnit?.length
 		);
 	}
 
