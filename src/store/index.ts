@@ -8,7 +8,7 @@ export class Store {
 	selectedOrgUnit?: any;
 	projects: any;
 	selectedProject?: any;
-	selectedObjective?: string;
+	selectedObjective?: any;
 	selectedYear?: any;
 
 	constructor(engine) {
@@ -35,16 +35,30 @@ export class Store {
 	};
 
 	getOrgUnitName = (orgUnit) => {
-		return this.userOrgUnits.find(org => org.id === orgUnit)?.name;
-	}
+		return this.userOrgUnits.find((org) => org.id === orgUnit)?.name;
+	};
 
 	fetchIndicators = async () => {
+		const orgUnits = Array.isArray(this.selectedOrgUnit)
+			? this.selectedOrgUnit
+			: [this.selectedOrgUnit]; //"K74ysFimUwH";
+
+		const years = Array.isArray(this.selectedYear)
+			? this.selectedYear
+			: [this.selectedYear];
+
+		const objectives = Array.isArray(this.selectedObjective)
+			? this.selectedObjective
+			: [this.selectedObjective];
+
 		const query = {
-			indicators: {
-				resource: `indicatorGroups/${this.selectedObjective}.json`,
+			indicatorGroups: {
+				resource: `indicatorGroups.json`,
 				params: {
+					filter: `id:in:[${objectives.join(",")}]`,
+					paging: false,
 					fields:
-						"indicators[name,id,code,description,legendSets[id,legends[endValue,color,displayName]]]",
+						"id,name,indicators[name,id,code,description,legendSets[id,legends[endValue,color,displayName]]]",
 					///api/29/indicators/fShDc5bXPDT.json?fields=legendSets[id,legends[endValue,color,displayName]]
 				},
 			},
@@ -53,15 +67,7 @@ export class Store {
 			const data = await this.engine.query(query);
 			console.log("fetchIndictors:", data);
 
-			const indicators = data.indicators.indicators; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
-
-			const orgUnits = Array.isArray(this.selectedOrgUnit)
-				? this.selectedOrgUnit
-				: [this.selectedOrgUnit]; //"K74ysFimUwH";
-
-			const years = Array.isArray(this.selectedYear)
-				? this.selectedYear
-				: [this.selectedYear];
+			const indicatorGroups = data.indicatorGroups.indicatorGroups; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
 
 			const periods = years.flatMap((year) => [
 				`${year}Q1`,
@@ -72,10 +78,12 @@ export class Store {
 
 			const periodStr = periods.join(";"); //"2021";
 
-			const indicatorMap = this._createIndicatorMap(indicators);
-			console.log("indicatorMap", indicatorMap);
+			const indicatorMaps = this._createIndicatorMaps(indicatorGroups);
+			console.log("indicatorMaps", indicatorMaps);
 
-			const indicatorIds = indicators.map((indicator) => indicator.id);
+			const indicatorIds = indicatorGroups.flatMap((group) =>
+				group.indicators.map((indicator) => indicator.id)
+			);
 			const dx = indicatorIds.join(";");
 
 			let mappedIndicatorValues = [];
@@ -98,59 +106,68 @@ export class Store {
 				);
 
 				years.forEach((year) => {
-					const indicatorValues = Object.values(indicatorMap).map(
-						(indicator) => {
-							let qVals = [];
-							let totalActual = 0;
-							let totalTarget = 0;
+					indicatorMaps.forEach((indicatorGroup) => {
+						const indicatorMap = indicatorGroup.indicators;
 
-							for (let i = 0; i < 4; i++) {
-								const pe = `${year}Q${i + 1}`;
-								const actualRow = result.rows.find(
-									(row) =>
-										row[dxIndex] === indicator.actualId &&
-										row[peIndex] === pe
-								);
-								qVals[i] = parseFloat(actualRow?.[valIndex] || 0);
+						const indicatorValues = Object.values(indicatorMap).map(
+							(indicator) => {
+								let qVals = [];
+								let totalActual = 0;
+								let totalTarget = 0;
 
-								totalActual += qVals[i];
-								const targetRow = result.rows.find(
-									(row) =>
-										row[dxIndex] === indicator.targetId &&
-										row[peIndex] === pe
-								);
-								totalTarget += parseFloat(targetRow?.[valIndex] || 0);
+								for (let i = 0; i < 4; i++) {
+									const pe = `${year}Q${i + 1}`;
+									const actualRow = result.rows.find(
+										(row) =>
+											row[dxIndex] === indicator.actualId &&
+											row[peIndex] === pe
+									);
+									qVals[i] = parseFloat(actualRow?.[valIndex] || 0);
+
+									totalActual += qVals[i];
+									const targetRow = result.rows.find(
+										(row) =>
+											row[dxIndex] === indicator.targetId &&
+											row[peIndex] === pe
+									);
+									totalTarget += parseFloat(
+										targetRow?.[valIndex] || 0
+									);
+								}
+
+								const percentage =
+									totalActual === totalTarget
+										? 100
+										: (totalActual * 100) / (totalTarget || 1);
+
+								const color = indicator.colors?.find((c, index) => {
+									return (
+										percentage < parseFloat(c.endValue) ||
+										index == indicator.colors.length - 1
+									);
+								});
+
+								return {
+									id: indicator.actualId || indicator.targetId,
+									name: indicator.name,
+									quartelyValues: qVals,
+									target: totalTarget,
+									actual: totalActual,
+									percentage: percentage,
+									color: color?.color,
+								};
 							}
+						);
 
-							const percentage =
-								totalActual === totalTarget
-									? 100
-									: (totalActual * 100) / (totalTarget || 1);
-
-							const color = indicator.colors?.find((c, index) => {
-								return (
-									percentage < parseFloat(c.endValue) ||
-									index == indicator.colors.length - 1
-								);
-							});
-
-							return {
-								id: indicator.actualId || indicator.targetId,
-								name: indicator.name,
-								quartelyValues: qVals,
-								target: totalTarget,
-								actual: totalActual,
-								percentage: percentage,
-								color: color?.color,
-							};
-						}
-					);
-
-					mappedIndicatorValues.push({
-						orgUnit: orgUnitName,
-						year,
-						values: indicatorValues,
-						key: `${orgUnit};${year}`
+						mappedIndicatorValues.push({
+							orgUnit,
+							orgUnitName,
+							objectiveId: indicatorGroup.id,
+							objective: indicatorGroup.name,
+							year,
+							values: indicatorValues,
+							key: `${orgUnit};${year}`,
+						});
 					});
 				});
 			}
@@ -163,41 +180,61 @@ export class Store {
 		}
 	};
 
-	_createIndicatorMap = (indicators: any) => {
-		let indicatorMap = {};
-
-		const addIndicatorToMap = (key, name, colors) => {
-			if (!indicatorMap.hasOwnProperty(key)) {
-				indicatorMap[key] = {
-					name: name,
-					colors: colors,
-				};
-			}
-		};
+	/*
+	@returns
+	[
+		{
+			id: indicatorGroupId,
+			name: indicatorGroupName (objective)
+			indicators: {name, colors}[] 
+		}
+	]
+	*/
+	_createIndicatorMaps = (indicatorGroups: any) => {
+		let indicatorMaps = [];
 
 		const tagRe = /\s*TAG_(\w+)\s*-\s*(.*)/i;
 		const actRe = /\s*ACT_(\w+)\s*-\s*(.*)/i;
-		indicators.forEach((indicator) => {
-			const colorsUnsorted = indicator.legendSets?.[0]?.legends ?? [];
-			const colors = colorsUnsorted?.sort(
-				(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
-			);
-			const tagMatch = indicator.name.match(tagRe);
-			const actMatch = indicator.name.match(actRe);
 
-			if (!!tagMatch) {
-				addIndicatorToMap(tagMatch[1], indicator.description, colors);
-				indicatorMap[tagMatch[1]].targetId = indicator.id;
-			} else if (!!actMatch) {
-				addIndicatorToMap(actMatch[1], indicator.description, colors);
-				indicatorMap[actMatch[1]].actualId = indicator.id;
-			} else {
-				addIndicatorToMap(indicator.code, indicator.description, colors);
-				indicatorMap[indicator.code].actualId = indicator.id;
-			}
+		indicatorGroups.forEach((group) => {
+			let indicatorMap = {};
+
+			const addIndicatorToMap = (key, name, colors) => {
+				if (!indicatorMap.hasOwnProperty(key)) {
+					indicatorMap[key] = {
+						name: name,
+						colors: colors,
+					};
+				}
+			};
+			group.indicators.forEach((indicator) => {
+				const colorsUnsorted = indicator.legendSets?.[0]?.legends ?? [];
+				const colors = colorsUnsorted?.sort(
+					(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
+				);
+				const tagMatch = indicator.name.match(tagRe);
+				const actMatch = indicator.name.match(actRe);
+
+				if (!!tagMatch) {
+					addIndicatorToMap(tagMatch[1], indicator.description, colors);
+					indicatorMap[tagMatch[1]].targetId = indicator.id;
+				} else if (!!actMatch) {
+					addIndicatorToMap(actMatch[1], indicator.description, colors);
+					indicatorMap[actMatch[1]].actualId = indicator.id;
+				} else {
+					addIndicatorToMap(indicator.code, indicator.description, colors);
+					indicatorMap[indicator.code].actualId = indicator.id;
+				}
+			});
+
+			indicatorMaps.push({
+				id: group.id,
+				name: group.name,
+				indicators: indicatorMap,
+			});
 		});
 
-		return indicatorMap;
+		return indicatorMaps;
 	};
 
 	loadOrgUnitRoots = async () => {

@@ -81,6 +81,7 @@ export const Toolbar = observer(() => {
 							onChange={store.setSelectedObjective}
 							allowClear={true}
 							options={objectives}
+							mode="multiple"
 							value={store.selectedObjective}
 							filterOption={(input, option) => {
 								return (

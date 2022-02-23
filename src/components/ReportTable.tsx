@@ -43,6 +43,9 @@ export const ReportTable = observer(() => {
 
 			const csv = [
 				[
+					"OrgUnit",
+					"Year",
+					"Objective",
 					"Indicator",
 					"Baseline",
 					"Target",
@@ -53,17 +56,20 @@ export const ReportTable = observer(() => {
 					"Q3",
 					"Q4",
 				],
-				...indicators.map((indicator) => [
+				...indicators.flatMap(area => area.values.map(indicator => [
+					area.orgUnit,
+					area.year,
+					area.objectiveId,
 					indicator.name,
 					0,
 					indicator.target,
 					indicator.actual,
 					Math.round(indicator.percentage),
+					indicator.quartelyValues?.[0],
 					indicator.quartelyValues?.[1],
 					indicator.quartelyValues?.[2],
 					indicator.quartelyValues?.[3],
-					indicator.quartelyValues?.[4],
-				]),
+				])),
 			];
 
 			setCsvData(csv, () => {
@@ -84,10 +90,10 @@ export const ReportTable = observer(() => {
 				<td style={{ backgroundColor: indicator.color }}>
 					{Math.round(indicator.percentage)}%
 				</td>
+				<td>{indicator.quartelyValues?.[0]}</td>
 				<td>{indicator.quartelyValues?.[1]}</td>
 				<td>{indicator.quartelyValues?.[2]}</td>
 				<td>{indicator.quartelyValues?.[3]}</td>
-				<td>{indicator.quartelyValues?.[4]}</td>
 			</>
 		);
 	};
@@ -99,8 +105,9 @@ export const ReportTable = observer(() => {
 					<tr>
 						<td className="thematic-area" rowspan={area.values.length}>
 							<div>
-								<p>{area.orgUnit}</p>
+								<p>{area.orgUnitName}</p>
 								<p>{area.year}</p>
+								<p>{area.objective}</p>
 							</div>
 						</td>
 						{renderIndicatorTableCells(area.values[0])}
