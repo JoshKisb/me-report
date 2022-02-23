@@ -100,6 +100,7 @@ export const Toolbar = observer(() => {
 							onChange={store.setSelectedYear}
 							allowClear={true}
 							options={years}
+							mode="multiple"
 							value={store.selectedYear}
 						/>
 					</div>

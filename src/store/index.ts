@@ -49,9 +49,19 @@ export class Store {
 			const data = await this.engine.query(query);
 			console.log("fetchIndictors:", data);
 
-			const orgUnit = this.selectedOrgUnit; //"K74ysFimUwH";
 			const indicators = data.indicators.indicators; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
-			const year = this.selectedYear; //"2021";
+			
+			const orgUnit = Array.isArray(this.selectedOrgUnit)
+				? this.selectedOrgUnit.join(";")
+				: this.selectedOrgUnit; //"K74ysFimUwH";
+			
+			const years = Array.isArray(this.selectedYear)
+				? this.selectedYear
+				: [this.selectedYear];
+
+			const periods = years
+				.map((year) => `${year}Q1;${year}Q2;${year}Q3;${year}Q4`)
+				.join(";"); //"2021";
 
 			let indicatorMap = {};
 
@@ -91,7 +101,7 @@ export class Store {
 			const indicatorIds = indicators.map((indicator) => indicator.id);
 			const dx = indicatorIds.join(";");
 
-			const url = `/api/36/analytics?dimension=dx:${dx},pe:${year}Q1;${year}Q2;${year}Q3;${year}Q4&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
+			const url = `/api/36/analytics?dimension=dx:${dx},pe:${periods}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
 			const result = await this.engine.link.fetch(url);
 
 			console.log("Result", result);
@@ -125,10 +135,10 @@ export class Store {
 						totalTarget += parseFloat(targetRow?.[valIndex] || 0);
 					}
 
-					const percentage = 
-					totalActual === totalTarget
-						? 100
-						: (totalActual * 100) / (totalTarget || 1)
+					const percentage =
+						totalActual === totalTarget
+							? 100
+							: (totalActual * 100) / (totalTarget || 1);
 
 					const color = indicator.colors?.find((c, index) => {
 						return (
@@ -247,6 +257,12 @@ export class Store {
 			!!this.selectedYear &&
 			!!this.selectedOrgUnit
 		);
+	}
+
+	get hasThematicAreas() {
+		const hasManyOrgs = this.selectedOrgUnit?.length > 1;
+		const hasManyYrs = this.selectedYear?.length > 1;
+		return hasManyOrgs || hasManyYrs;
 	}
 }
 
