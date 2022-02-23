@@ -51,7 +51,9 @@
 	font-weight: bold;
 
 	div {
-		font-weight: bold;
+		position: sticky;
+		top: 90px;
+		z-index: 15px;
 	}
 }
 
