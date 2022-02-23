@@ -24,6 +24,8 @@
     "lodash": "^4.17.21",
     "mobx": "^6.3.13",
     "mobx-react-lite": "^3.2.3",
-    "sass": "^1.49.7"
+    "react-csv": "^2.2.2",
+    "sass": "^1.49.7",
+    "use-state-with-callback": "^2.0.3"
   }
 }
