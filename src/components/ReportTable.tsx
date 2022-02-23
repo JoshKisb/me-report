@@ -114,18 +114,18 @@ export const ReportTable = observer(() => {
 					<table className="report-table table table-bordered">
 						<thead class="table-dark">
 							<tr>
-								<td rowspan="2">Indicator (Code)</td>
-								<td rowspan="2">Baseline</td>
-								<td rowspan="2">Target</td>
-								<td rowspan="2">Actual</td>
-								<td rowspan="2">% age Achieved</td>
-								<td colspan="4">Quarterly Status</td>
+								<th rowspan="2">Indicator (Code)</th>
+								<th rowspan="2">Baseline</th>
+								<th rowspan="2">Target</th>
+								<th rowspan="2">Actual</th>
+								<th rowspan="2">% age Achieved</th>
+								<th colspan="4">Quarterly Status</th>
 							</tr>
 							<tr>
-								<td>Q1</td>
-								<td>Q2</td>
-								<td>Q3</td>
-								<td>Q4</td>
+								<th>Q1</th>
+								<th>Q2</th>
+								<th>Q3</th>
+								<th>Q4</th>
 							</tr>
 						</thead>
 						<tbody>
