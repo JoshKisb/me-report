@@ -166,7 +166,7 @@ export class Store {
 							objective: indicatorGroup.name,
 							year,
 							values: indicatorValues,
-							key: `${orgUnit};${year}`,
+							key: `${orgUnit};${year};${indicatorGroup.id}`,
 						});
 					});
 				});
@@ -323,7 +323,7 @@ export class Store {
 
 	get fieldsSelected() {
 		return (
-			!!this.selectedObjective &&
+			!!this.selectedObjective?.length &&
 			!!this.selectedYear?.length &&
 			!!this.selectedOrgUnit?.length
 		);
@@ -332,7 +332,8 @@ export class Store {
 	get hasThematicAreas() {
 		const hasManyOrgs = this.selectedOrgUnit?.length > 1;
 		const hasManyYrs = this.selectedYear?.length > 1;
-		return hasManyOrgs || hasManyYrs;
+		const hasManyObjectives = this.selectedObjective?.length > 1;
+		return hasManyOrgs || hasManyYrs || hasManyObjectives;
 	}
 }
 
