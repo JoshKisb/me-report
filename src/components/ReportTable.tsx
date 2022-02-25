@@ -35,7 +35,12 @@ export const ReportTable = observer(() => {
 			.finally(() => {
 				setLoading(false);
 			});
-	}, [store?.selectedObjective, store?.selectedOrgUnit, store?.selectedYear]);
+	}, [
+		store?.selectedObjective,
+		store?.selectedOrgUnit,
+		store?.selectedYear,
+		store?.selectedThematicArea,
+	]);
 
 	const prepareCSV = (event) => {
 		if (!loadingCSV) {
@@ -56,20 +61,22 @@ export const ReportTable = observer(() => {
 					"Q3",
 					"Q4",
 				],
-				...indicators.flatMap(area => area.values.map(indicator => [
-					area.orgUnit,
-					area.year,
-					area.objectiveId,
-					indicator.name,
-					0,
-					indicator.target,
-					indicator.actual,
-					Math.round(indicator.percentage),
-					indicator.quartelyValues?.[0],
-					indicator.quartelyValues?.[1],
-					indicator.quartelyValues?.[2],
-					indicator.quartelyValues?.[3],
-				])),
+				...indicators.flatMap((area) =>
+					area.values.map((indicator) => [
+						area.orgUnit,
+						area.year,
+						area.objectiveId,
+						indicator.name,
+						0,
+						indicator.target,
+						indicator.actual,
+						Math.round(indicator.percentage),
+						indicator.quartelyValues?.[0],
+						indicator.quartelyValues?.[1],
+						indicator.quartelyValues?.[2],
+						indicator.quartelyValues?.[3],
+					])
+				),
 			];
 
 			setCsvData(csv, () => {
@@ -107,7 +114,9 @@ export const ReportTable = observer(() => {
 							<div>
 								<p>{area.orgUnitName}</p>
 								<p>{area.year}</p>
-								<p>{area.objective}</p>
+								{(store.selectedThematicAreaArray.length > 0) && (
+									<p>{area.objective}</p>
+								)}
 							</div>
 						</td>
 						{renderIndicatorTableCells(area.values[0])}

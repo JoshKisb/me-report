@@ -1,6 +1,8 @@
 import React from "react";
-import { observable, runInAction, makeAutoObservable } from "mobx";
+import { observable, runInAction, makeAutoObservable, toJS } from "mobx";
 import { flatten } from "lodash";
+
+const thematicAreaId = "uiuTNKXPniu";
 
 export class Store {
 	engine: any;
@@ -8,6 +10,8 @@ export class Store {
 	selectedOrgUnit?: any;
 	projects: any;
 	selectedProject?: any;
+	thematicAreas?: any;
+	selectedThematicArea?: any;
 	selectedObjective?: any;
 	selectedYear?: any;
 
@@ -15,6 +19,8 @@ export class Store {
 		makeAutoObservable(this);
 		this.engine = engine;
 		this.userOrgUnits = [];
+		this.projects = [];
+		this.thematicAreas = [];
 	}
 
 	setSelectedOrgUnit = (orgUnit) => {
@@ -24,6 +30,10 @@ export class Store {
 	setSelectedProject = (project) => {
 		console.log("selectedProject", project);
 		this.selectedProject = project;
+	};
+
+	setSelectedThematicArea = (area) => {
+		this.selectedThematicArea = area;
 	};
 
 	setSelectedObjective = (objective) => {
@@ -39,17 +49,9 @@ export class Store {
 	};
 
 	fetchIndicators = async () => {
-		const orgUnits = Array.isArray(this.selectedOrgUnit)
-			? this.selectedOrgUnit
-			: [this.selectedOrgUnit]; //"K74ysFimUwH";
-
-		const years = Array.isArray(this.selectedYear)
-			? this.selectedYear
-			: [this.selectedYear];
-
-		const objectives = Array.isArray(this.selectedObjective)
-			? this.selectedObjective
-			: [this.selectedObjective];
+		const orgUnits = this.selectedOrgUnitArray;
+		const years = this.selectedYearArray;
+		const objectives = this.selectedObjectiveArray;
 
 		const query = {
 			indicatorGroups: {
@@ -64,10 +66,8 @@ export class Store {
 			},
 		};
 		try {
-			const data = await this.engine.query(query);
-			console.log("fetchIndictors:", data);
-
-			const indicatorGroups = data.indicatorGroups.indicatorGroups; //["CTb5bVzcEbU","K4AeeWVALpq","FhiaL2mUSoo","QMyTzu8zKUp","W03LOqxoYd6","cMDzD9MxFta","dQ38pFxrHaU","SioU4rBJlDl","JtUHitSV43e","HmfGt0OHzJY","DA2OMVvhXlv","YvXv1qhtydm","h6RmQHnPDE2","uA1F8OuqHXI","fShDc5bXPDT","erUuUkZhr2u","xBnGG9EtkiG","AxIbqJ4M21O","V8BpxQC0R95","zb4k92ACPtP","MaCntsRBjDw","uuYcirBttqw","Bzzrry9YBae","u4b2kENWhgF","vRicBw9t6tv","brYAEP8d5Wn","k8sauqPHBx6","fEfZukNLFCQ","em17q1a9k6g","RF5L35w5cww","aQGdG62wWnk","hld8H9ABApV","GPMOfMohNNo","lZtOI3yam7i","P4Hz9Tt85F9","Cfvf452pvGa","SNAt1d5fGyk","ZNV8lk5TWga","U3RAq2bGnHh","Fk1Hn9o3Vd8","gplI9TZnsgL","wNUqmGUAah1","pU5XBvlUgK7","A5KPhtC2yVB","pkKDS4uagV5","pksEEQs7HFc","u5874InX3tj","Dqp11dt7zse","yvstFQZcSzp","KGF5Rl4TBcL","RI0EfIc0CnP","C5tZ4KKxgJx","nJJ2jXIMaEt","hfTnzlAmEB2","trtmeL0A4KJ","eHGkry8ecTK","lQ6FnyeDp2l","AVisO3i0enp","M4VcHzMb3s2","KEqIYWuZ8Y8","zTLpUjaJmvR","vYA0PJdeUji"];
+			const result = await this.engine.query(query);
+			console.log("fetchIndictors:", result);
 
 			const periods = years.flatMap((year) => [
 				`${year}Q1`,
@@ -76,9 +76,30 @@ export class Store {
 				`${year}Q4`,
 			]);
 
-			const periodStr = periods.join(";"); //"2021";
+			const periodStr = periods.join(";");
 
+			// Filter by selected thematic area
+			const indicatorGroupsRes = result.indicatorGroups.indicatorGroups;
+			const indicatorGroups = indicatorGroupsRes.map((group) => {
+				if (this.selectedThematicAreaArray.length > 0) {
+					const possibleIndicators = this.thematicAreas
+						.filter((area) =>
+							this.selectedThematicAreaArray.includes(area.id)
+						)
+						.flatMap((area) => area.indicators);
+
+					const filteredIndicators = group.indicators.filter((indicator) =>
+						possibleIndicators.some((pi) => pi.id == indicator.id)
+					);
+
+					return { ...group, indicators: filteredIndicators };
+				}
+				return group;
+			});
+
+			console.log("filtered indicatorGroups", indicatorGroups);
 			const indicatorMaps = this._createIndicatorMaps(indicatorGroups);
+
 			console.log("indicatorMaps", indicatorMaps);
 
 			const indicatorIds = indicatorGroups.flatMap((group) =>
@@ -87,6 +108,8 @@ export class Store {
 			const dx = indicatorIds.join(";");
 
 			let mappedIndicatorValues = [];
+
+			if (indicatorIds.length == 0) return [];
 
 			for (const orgUnit of orgUnits) {
 				const orgUnitName = this.getOrgUnitName(orgUnit);
@@ -181,14 +204,14 @@ export class Store {
 	};
 
 	/*
-	@returns
-	[
-		{
-			id: indicatorGroupId,
-			name: indicatorGroupName (objective)
-			indicators: {name, colors}[] 
-		}
-	]
+		@returns
+		[
+			{
+				id: indicatorGroupId,
+				name: indicatorGroupName (thematic area) ///objective)
+				indicators: {name, colors, thematicArea}[] 
+			}
+		]
 	*/
 	_createIndicatorMaps = (indicatorGroups: any) => {
 		let indicatorMaps = [];
@@ -199,15 +222,21 @@ export class Store {
 		indicatorGroups.forEach((group) => {
 			let indicatorMap = {};
 
-			const addIndicatorToMap = (key, name, colors) => {
+			const addIndicatorToMap = (key, name, colors, thematicArea) => {
 				if (!indicatorMap.hasOwnProperty(key)) {
 					indicatorMap[key] = {
 						name: name,
 						colors: colors,
+						thematicArea,
 					};
 				}
 			};
+			console.log("_createIndicatorMaps group", group);
+
 			group.indicators.forEach((indicator) => {
+				const thematicArea = this.thematicAreas.find((area) =>
+					area.indicators.some((i) => i.id == indicator.id)
+				);
 				const colorsUnsorted = indicator.legendSets?.[0]?.legends ?? [];
 				const colors = colorsUnsorted?.sort(
 					(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
@@ -216,13 +245,28 @@ export class Store {
 				const actMatch = indicator.name.match(actRe);
 
 				if (!!tagMatch) {
-					addIndicatorToMap(tagMatch[1], indicator.description, colors);
+					addIndicatorToMap(
+						tagMatch[1],
+						indicator.description,
+						colors,
+						thematicArea
+					);
 					indicatorMap[tagMatch[1]].targetId = indicator.id;
 				} else if (!!actMatch) {
-					addIndicatorToMap(actMatch[1], indicator.description, colors);
+					addIndicatorToMap(
+						actMatch[1],
+						indicator.description,
+						colors,
+						thematicArea
+					);
 					indicatorMap[actMatch[1]].actualId = indicator.id;
 				} else {
-					addIndicatorToMap(indicator.code, indicator.description, colors);
+					addIndicatorToMap(
+						indicator.code,
+						indicator.description,
+						colors,
+						thematicArea
+					);
 					indicatorMap[indicator.code].actualId = indicator.id;
 				}
 			});
@@ -230,11 +274,33 @@ export class Store {
 			indicatorMaps.push({
 				id: group.id,
 				name: group.name,
-				indicators: indicatorMap,
+				indicators: Object.values(indicatorMap),
 			});
 		});
 
-		return indicatorMaps;
+		
+		if (this.selectedThematicAreaArray.length > 0)
+			return this._groupIndicatorsByThematicAreas(indicatorMaps);
+		else return indicatorMaps;
+	};
+
+	_groupIndicatorsByThematicAreas = (indicatorGroups) => {
+		let indicatorMap = {};
+		indicatorGroups.forEach((group) => {
+			console.log("_groupIndicatorsByThematicAreas group", group);
+			group.indicators.forEach((indicator) => {
+				const area = indicator.thematicArea;
+				if (!indicatorMap[area.id]) {
+					indicatorMap[area.id] = {
+						id: area.id,
+						name: area.name,
+						indicators: [],
+					};
+				}
+				indicatorMap[area.id].indicators.push(indicator);
+			});
+		});
+		return Object.values(indicatorMap);
 	};
 
 	loadOrgUnitRoots = async () => {
@@ -288,15 +354,32 @@ export class Store {
 			projects: {
 				resource: "indicatorGroupSets.json",
 				params: {
+					filter: `id:!eq:${thematicAreaId}`,
 					paging: false,
 					fields: "id,displayName,indicatorGroups[name,id]",
+				},
+			},
+			thematicAreas: {
+				resource: `indicatorGroupSets/${thematicAreaId}.json`,
+				params: {
+					paging: false,
+					fields: "indicatorGroups[id,name,indicators[name,id]]",
 				},
 			},
 		};
 		try {
 			const data = await this.engine.query(query);
 			console.log("projects:", data);
-			this.projects = data.projects.indicatorGroupSets.map((p) => {
+
+			this.thematicAreas = data.thematicAreas.indicatorGroups.map((area) => {
+				return {
+					...area,
+					name: area.name.replace(/^\s?Thematic Area\s?-?\s?/i, ""),
+				};
+			});
+
+			const indicatorGroupSets = data.projects.indicatorGroupSets;
+			this.projects = indicatorGroupSets.map((p) => {
 				return {
 					id: p.id,
 					name: p.displayName,
@@ -321,6 +404,29 @@ export class Store {
 		return units;
 	}
 
+	get selectedThematicAreaArray() {
+		return Array.isArray(this.selectedThematicArea)
+			? this.selectedThematicArea
+			: !!this.selectedThematicArea
+			? [this.selectedThematicArea]
+			: [];
+	}
+	get selectedObjectiveArray() {
+		return Array.isArray(this.selectedObjective)
+			? this.selectedObjective
+			: [this.selectedObjective];
+	}
+	get selectedOrgUnitArray() {
+		return Array.isArray(this.selectedOrgUnit)
+			? this.selectedOrgUnit
+			: [this.selectedOrgUnit];
+	}
+	get selectedYearArray() {
+		return Array.isArray(this.selectedYear)
+			? this.selectedYear
+			: [this.selectedYear];
+	}
+
 	get fieldsSelected() {
 		return (
 			!!this.selectedObjective?.length &&
@@ -333,7 +439,13 @@ export class Store {
 		const hasManyOrgs = this.selectedOrgUnit?.length > 1;
 		const hasManyYrs = this.selectedYear?.length > 1;
 		const hasManyObjectives = this.selectedObjective?.length > 1;
-		return hasManyOrgs || hasManyYrs || hasManyObjectives;
+		const hasSelectedThematicArea = this.selectedThematicAreaArray.length > 0;
+		return (
+			hasManyOrgs ||
+			hasManyYrs ||
+			hasManyObjectives ||
+			hasSelectedThematicArea
+		);
 	}
 }
 

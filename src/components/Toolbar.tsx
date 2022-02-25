@@ -4,6 +4,8 @@ import { OrgUnitTree } from "./OrgUnitTree";
 import { observer } from "mobx-react-lite";
 import { useStore } from "../store";
 
+const { Option } = Select;
+
 const styles = {
 	selectBox: {
 		backgroundColor: "#dedede",
@@ -22,18 +24,44 @@ const reverseRange = (from, to) =>
 export const Toolbar = observer(() => {
 	const store = useStore();
 	const [objectives, setObjectives] = useState([]);
+	const [thematicAreas, setThematicAreas] = useState([]);
 	const years = reverseRange(new Date().getFullYear(), 2018).map((y) => ({
 		label: y,
 		value: y,
 	}));
 
-	const handleProjectSelect = (project) => {
-		if (project === store.selectedProject) return;
-		store.setSelectedProject(project);
+	// change objectives when project changes
+	useEffect(() => {
+		setObjectives([]);
 		store.setSelectedObjective(null);
-		const projectObj = store.projects.find((p) => p.id === project);
+
+		if (!store.selectedProject) return;
+
+		const projectObj = store.projects.find(
+			(p) => p.id === store.selectedProject
+		);
+		console.log(projectObj.objectives);
 		setObjectives(projectObj.objectives);
-	};
+	}, [store?.selectedProject]);
+
+	// change objectives when thematic area changes
+	// useEffect(() => {
+	// 	if (!store.selectedThematicAreaArray.length) {
+	// 		setObjectives([]);
+	// 		return;
+	// 	}
+
+	// 	const thematicAreaIds = store.selectedThematicAreaArray;
+	// 	const projectObj = store.projects.find(
+	// 		(p) => p.id === store.selectedProject
+	// 	);
+	// 	const objectives = projectObj.thematicAreas
+	// 		.filter((area) => thematicAreaIds.includes(area.id))
+	// 		.map((area) => area.objectives);
+
+	// 	setObjectives(objectives);
+	// 	console.log(objectives);
+	// }, [store?.selectedThematicArea]);
 
 	useEffect(() => {
 		store.loadProjects();
@@ -48,7 +76,7 @@ export const Toolbar = observer(() => {
 						<OrgUnitTree />
 					</div>
 				</Col>
-				<Col className="gutter-row" xs={24} md={5}>
+				<Col className="gutter-row" xs={24} md={4}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Project</p>
 						<Select
@@ -56,7 +84,8 @@ export const Toolbar = observer(() => {
 							placeholder="Select Project"
 							optionFilterProp="label"
 							fieldNames={{ label: "name", value: "id" }}
-							onChange={handleProjectSelect}
+							onChange={store.setSelectedProject}
+							value={store.selectedProject}
 							allowClear={true}
 							options={store.projects}
 							filterOption={(input, option) => {
@@ -70,20 +99,20 @@ export const Toolbar = observer(() => {
 						/>
 					</div>
 				</Col>
-				<Col className="gutter-row" xs={24} md={8} lg={9}>
+				<Col className="gutter-row" xs={24} md={5}>
 					<div style={styles.selectBox}>
-						<p style={styles.label}>Selected Objective</p>
+						<p style={styles.label}>Selected Thematic Area</p>
 						<Select
 							showSearch
-							placeholder="Select Objective"
+							placeholder="Select Thematic Area"
 							optionFilterProp="label"
 							fieldNames={{ label: "name", value: "id" }}
-							onChange={store.setSelectedObjective}
+							onChange={store.setSelectedThematicArea}
 							allowClear={true}
-							options={objectives}
 							mode="multiple"
-							value={store.selectedObjective}
+							options={store.thematicAreas}
 							filterOption={(input, option) => {
+								console.log(option);
 								return (
 									option.name
 										.toLowerCase()
@@ -93,7 +122,31 @@ export const Toolbar = observer(() => {
 						/>
 					</div>
 				</Col>
-				<Col className="gutter-row" xs={24} md={4} lg={3}>
+				<Col className="gutter-row" xs={24} md={5} lg={5}>
+					<div style={styles.selectBox}>
+						<p style={styles.label}>Selected Objective</p>
+						<Select
+							showSearch
+							placeholder="Select Objective"
+							optionFilterProp="label"
+							fieldNames={{ label: "name", value: "id" }}
+							onChange={store.setSelectedObjective}
+							allowClear={true}
+							// mode="multiple"
+							value={store.selectedObjective}
+							options={objectives}
+							filterOption={(input, option) => {
+								console.log(input, option);
+								return (
+									option.name
+										.toLowerCase()
+										.indexOf(input.toLowerCase()) >= 0
+								);
+							}}
+						/>
+					</div>
+				</Col>
+				<Col className="gutter-row" xs={24} md={3} lg={3}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Year</p>
 						<Select
