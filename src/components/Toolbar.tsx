@@ -40,7 +40,6 @@ export const Toolbar = observer(() => {
 		const projectObj = store.projects.find(
 			(p) => p.id === store.selectedProject
 		);
-		console.log(projectObj.objectives);
 		setObjectives(projectObj.objectives);
 	}, [store?.selectedProject]);
 

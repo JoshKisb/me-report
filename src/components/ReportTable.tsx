@@ -33,7 +33,7 @@ export const ReportTable = observer(() => {
 				setIndicators(indicators);
 			})
 			.finally(() => {
-				console.log("hasThematicAreas", store.hasThematicAreas)
+				console.log("hasThematicAreas", store.hasThematicAreas);
 				setLoading(false);
 			});
 	}, [
@@ -99,17 +99,15 @@ export const ReportTable = observer(() => {
 				<td>{indicator.orgUnitName}</td>
 				<td>{indicator.name}</td>
 				<td>0</td>
-				<td>{indicator.target || "N/A"}</td>
-				<td>{indicator.actual}</td>
+				<td>{indicator.target ?? "N/A"}</td>
+				<td>{indicator.actual ?? "N/A"}</td>
 				<td style={{ backgroundColor: indicator.color }}>
-					{!!indicator.target
-						? `${Math.round(indicator.percentage)}%`
-						: "N/A"}
+					{indicator.percentage != null ? `${indicator.percentage}%` : "N/A"}
 				</td>
-				<td>{indicator.quartelyValues?.[0]}</td>
-				<td>{indicator.quartelyValues?.[1]}</td>
-				<td>{indicator.quartelyValues?.[2]}</td>
-				<td>{indicator.quartelyValues?.[3]}</td>
+				<td>{indicator.quartelyValues?.[0] ?? "N/A"}</td>
+				<td>{indicator.quartelyValues?.[1] ?? "N/A"}</td>
+				<td>{indicator.quartelyValues?.[2] ?? "N/A"}</td>
+				<td>{indicator.quartelyValues?.[3] ?? "N/A"}</td>
 			</>
 		);
 	};

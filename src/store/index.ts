@@ -60,7 +60,7 @@ export class Store {
 					filter: `id:in:[${objectives.join(",")}]`,
 					paging: false,
 					fields:
-						"id,name,indicators[name,id,code,description,legendSets[id,legends[endValue,color,displayName]]]",
+						"id,name,indicators[name,id,code,description,indicatorType[id,name],legendSets[id,legends[endValue,color,displayName]]]",
 					///api/29/indicators/fShDc5bXPDT.json?fields=legendSets[id,legends[endValue,color,displayName]]
 				},
 			},
@@ -70,6 +70,7 @@ export class Store {
 			console.log("fetchIndictors:", result);
 
 			const periods = years.flatMap((year) => [
+				`${year}`,
 				`${year}Q1`,
 				`${year}Q2`,
 				`${year}Q3`,
@@ -118,15 +119,10 @@ export class Store {
 
 				console.log("Result", result);
 
-				const dxIndex = result.headers.findIndex(
-					(h: any) => h.name === "dx"
-				);
-				const peIndex = result.headers.findIndex(
-					(h: any) => h.name === "pe"
-				);
-				const valIndex = result.headers.findIndex(
-					(h: any) => h.name === "value"
-				);
+				const indexes = {};
+				result.headers.forEach((h: any, i) => {
+					indexes[h.name] = i;
+				});
 
 				indicatorMaps.forEach((indicatorGroup) => {
 					const indicatorMap = indicatorGroup.indicators;
@@ -135,33 +131,107 @@ export class Store {
 						(indicator) => {
 							return years.map((year) => {
 								let qVals = [];
+								let qTVals = [];
+								let systemTarget = 0;
+								let systemActual = 0;
 								let totalActual = 0;
 								let totalTarget = 0;
 
+								const actualYrRow = result.rows.find(
+									(row) =>
+										row[indexes.dx] === indicator.actualId &&
+										row[indexes.pe] === `${year}`
+								);
+								systemActual = actualYrRow?.[indexes.value];
+
+								const targetYrRow = result.rows.find(
+									(row) =>
+										row[indexes.dx] === indicator.targetId &&
+										row[indexes.pe] === `${year}`
+								);
+								systemTarget = targetYrRow?.[indexes.value];
+
+								let totalNA = 0;
+								let totalDA = 0;
+								let totalNT = 0;
+								let totalDT = 0;
+
 								for (let i = 0; i < 4; i++) {
 									const pe = `${year}Q${i + 1}`;
+
+									// Actual
 									const actualRow = result.rows.find(
 										(row) =>
-											row[dxIndex] === indicator.actualId &&
-											row[peIndex] === pe
+											row[indexes.dx] === indicator.actualId &&
+											row[indexes.pe] === pe
 									);
-									qVals[i] = parseFloat(actualRow?.[valIndex] || 0);
 
-									totalActual += qVals[i];
+									// Target
 									const targetRow = result.rows.find(
 										(row) =>
-											row[dxIndex] === indicator.targetId &&
-											row[peIndex] === pe
+											row[indexes.dx] === indicator.targetId &&
+											row[indexes.pe] === pe
 									);
-									totalTarget += parseFloat(
-										targetRow?.[valIndex] || 0
-									);
+
+									const actualValue = actualRow?.[indexes.value];
+									qVals[i] = !!actualValue
+										? parseFloat(actualValue)
+										: null;
+
+									const tagValue = targetRow?.[indexes.value];
+									qTVals[i] = !!tagValue ? parseFloat(tagValue) : null;
+
+									if (indicator.type == "ay1aN8SGK7J") {
+										// Latest number
+										if (!!actualValue) {
+											totalActual = qVals[i];
+										}
+										if (!!tagValue) {
+											totalTarget = qTVals[i];
+										}
+									} else if (indicator.type == "Vejcb1Wvjrc") {
+										// Cumulative percentage"
+										if (!!actualValue) {
+											const n = parseFloat(
+												actualRow?.[indexes.numerator] || 0
+											);
+											const d = parseFloat(
+												actualRow?.[indexes.denominator] || 0
+											);
+											totalActual += qVals[i] * (n / d);
+										}
+
+										if (!!tagValue) {
+											const n = parseFloat(
+												targetRow?.[indexes.numerator] || 0
+											);
+											const d = parseFloat(
+												targetRow?.[indexes.denominator] || 0
+											);
+
+											totalTarget += qTVals[i] * ( n / d);
+										}
+
+										
+									} else {
+										totalActual += qVals[i] || 0;
+										totalTarget += qTVals[i] || 0;
+									}
 								}
 
-								const percentage =
-									totalActual === totalTarget
-										? 100
-										: (totalActual * 100) / (totalTarget || 1);
+
+								// set total to null instead of 0
+								if (qTVals.every((x) => x == null)) totalTarget = null;
+								if (qVals.every((x) => x == null)) totalActual = null;
+
+								let percentage = null;
+
+								if (totalActual !== null && totalTarget !== null) {
+									percentage =
+										totalActual === totalTarget
+											? 100
+											: (totalActual * 100) / (totalTarget || 1);
+								}
 
 								const color = indicator.colors?.find((c, index) => {
 									return (
@@ -170,6 +240,11 @@ export class Store {
 									);
 								});
 
+								const toOneDecimal = (value) =>
+									!!value && value % 1 !== 0
+										? Number(value).toFixed(1)
+										: value;
+
 								return {
 									id: indicator.actualId || indicator.targetId,
 									name: indicator.name,
@@ -177,9 +252,11 @@ export class Store {
 									orgUnit,
 									orgUnitName,
 									year,
-									target: totalTarget,
-									actual: totalActual,
-									percentage: percentage,
+									target: toOneDecimal(totalTarget),
+									target2: systemTarget,
+									actual: toOneDecimal(totalActual),
+									actual2: systemActual,
+									percentage: toOneDecimal(percentage),
 									color: color?.color,
 								};
 							});
@@ -206,7 +283,7 @@ export class Store {
 						mapo[iv.thematicArea].values = [
 							...mapo[iv.thematicArea].values,
 							...iv.values,
-						]
+						];
 					}
 				});
 				mappedIndicatorValues = Object.values(mapo);
@@ -230,18 +307,19 @@ export class Store {
 	_createIndicatorMaps = (indicatorGroups: any) => {
 		let indicatorMaps = [];
 
-		const tagRe = /\s*TAG_(\w+)\s*-\s*(.*)/i;
-		const actRe = /\s*ACT_(\w+)\s*-\s*(.*)/i;
+		const tagRe = /\s*TAG_(\w+)/i; //\s*-\s*(.*)/i;
+		const actRe = /\s*ACT_(\w+)/i; //\s*-\s*(.*)/i;
 
 		indicatorGroups.forEach((group) => {
 			let indicatorMap = {};
 
-			const addIndicatorToMap = (key, name, colors, thematicArea) => {
+			const addIndicatorToMap = (key, name, colors, thematicArea, type) => {
 				if (!indicatorMap.hasOwnProperty(key)) {
 					indicatorMap[key] = {
 						name: name,
 						colors: colors,
 						thematicArea,
+						type,
 					};
 				}
 			};
@@ -255,15 +333,16 @@ export class Store {
 				const colors = colorsUnsorted?.sort(
 					(a, b) => parseFloat(a.endValue) - parseFloat(b.endValue)
 				);
-				const tagMatch = indicator.name.match(tagRe);
-				const actMatch = indicator.name.match(actRe);
+				const tagMatch = indicator.code.match(tagRe);
+				const actMatch = indicator.code.match(actRe);
 
 				if (!!tagMatch) {
 					addIndicatorToMap(
 						tagMatch[1],
 						indicator.description,
 						colors,
-						thematicArea
+						thematicArea,
+						indicator.indicatorType.id
 					);
 					indicatorMap[tagMatch[1]].targetId = indicator.id;
 				} else if (!!actMatch) {
@@ -271,7 +350,8 @@ export class Store {
 						actMatch[1],
 						indicator.description,
 						colors,
-						thematicArea
+						thematicArea,
+						indicator.indicatorType.id
 					);
 					indicatorMap[actMatch[1]].actualId = indicator.id;
 				} else {
@@ -279,7 +359,8 @@ export class Store {
 						indicator.code,
 						indicator.description,
 						colors,
-						thematicArea
+						thematicArea,
+						indicator.indicatorType.id
 					);
 					indicatorMap[indicator.code].actualId = indicator.id;
 				}
