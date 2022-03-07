@@ -33,6 +33,7 @@ export const ReportTable = observer(() => {
 				setIndicators(indicators);
 			})
 			.finally(() => {
+				console.log("hasThematicAreas", store.hasThematicAreas)
 				setLoading(false);
 			});
 	}, [
@@ -49,8 +50,10 @@ export const ReportTable = observer(() => {
 			const csv = [
 				[
 					"OrgUnit",
+					"OrgUnit Name",
 					"Year",
 					"Objective",
+					"Objective Id",
 					"Indicator",
 					"Baseline",
 					"Target",
@@ -63,8 +66,10 @@ export const ReportTable = observer(() => {
 				],
 				...indicators.flatMap((area) =>
 					area.values.map((indicator) => [
-						area.orgUnit,
-						area.year,
+						indicator.orgUnit,
+						indicator.orgUnitName,
+						indicator.year,
+						area.objective,
 						area.objectiveId,
 						indicator.name,
 						0,
@@ -90,12 +95,16 @@ export const ReportTable = observer(() => {
 	const renderIndicatorTableCells = (indicator) => {
 		return (
 			<>
+				<td>{indicator.year}</td>
+				<td>{indicator.orgUnitName}</td>
 				<td>{indicator.name}</td>
 				<td>0</td>
-				<td>{indicator.target}</td>
+				<td>{indicator.target || "N/A"}</td>
 				<td>{indicator.actual}</td>
 				<td style={{ backgroundColor: indicator.color }}>
-					{Math.round(indicator.percentage)}%
+					{!!indicator.target
+						? `${Math.round(indicator.percentage)}%`
+						: "N/A"}
 				</td>
 				<td>{indicator.quartelyValues?.[0]}</td>
 				<td>{indicator.quartelyValues?.[1]}</td>
@@ -112,17 +121,17 @@ export const ReportTable = observer(() => {
 					<tr>
 						<td className="thematic-area" rowspan={area.values.length}>
 							<div>
-								<p>{area.orgUnitName}</p>
-								<p>{area.year}</p>
-								{(store.selectedThematicAreaArray.length > 0) && (
-									<p>{area.objective}</p>
+								{store.selectedThematicAreaArray.length > 0 && (
+									<p>{area.thematicArea}</p>
 								)}
 							</div>
 						</td>
 						{renderIndicatorTableCells(area.values[0])}
 					</tr>
 					{area.values.slice(1).map((indicator) => (
-						<tr key={indicator.id}>{renderIndicatorTableCells(indicator)}</tr>
+						<tr key={indicator.id}>
+							{renderIndicatorTableCells(indicator)}
+						</tr>
 					))}
 				</>
 			);
@@ -130,7 +139,9 @@ export const ReportTable = observer(() => {
 			return (
 				<>
 					{area.values.map((indicator) => (
-						<tr key={indicator.id}>{renderIndicatorTableCells(indicator)}</tr>
+						<tr key={indicator.id}>
+							{renderIndicatorTableCells(indicator)}
+						</tr>
 					))}
 				</>
 			);
@@ -176,7 +187,11 @@ export const ReportTable = observer(() => {
 					<table className="report-table table table-bordered">
 						<thead class="table-dark">
 							<tr>
-								{store.hasThematicAreas && <th rowspan="2">Thematic Area</th>}
+								{store.hasThematicAreas && (
+									<th rowspan="2">Thematic Area</th>
+								)}
+								<th rowspan="2">Year</th>
+								<th rowspan="2">Org Unit</th>
 								<th rowspan="2">Indicator (Code)</th>
 								<th rowspan="2">Baseline</th>
 								<th rowspan="2">Target</th>

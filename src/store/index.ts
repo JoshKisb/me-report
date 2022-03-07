@@ -128,12 +128,12 @@ export class Store {
 					(h: any) => h.name === "value"
 				);
 
-				years.forEach((year) => {
-					indicatorMaps.forEach((indicatorGroup) => {
-						const indicatorMap = indicatorGroup.indicators;
+				indicatorMaps.forEach((indicatorGroup) => {
+					const indicatorMap = indicatorGroup.indicators;
 
-						const indicatorValues = Object.values(indicatorMap).map(
-							(indicator) => {
+					const indicatorValues = Object.values(indicatorMap).flatMap(
+						(indicator) => {
+							return years.map((year) => {
 								let qVals = [];
 								let totalActual = 0;
 								let totalTarget = 0;
@@ -174,29 +174,43 @@ export class Store {
 									id: indicator.actualId || indicator.targetId,
 									name: indicator.name,
 									quartelyValues: qVals,
+									orgUnit,
+									orgUnitName,
+									year,
 									target: totalTarget,
 									actual: totalActual,
 									percentage: percentage,
 									color: color?.color,
 								};
-							}
-						);
+							});
+						}
+					);
 
-						mappedIndicatorValues.push({
-							orgUnit,
-							orgUnitName,
-							objectiveId: indicatorGroup.id,
-							objective: indicatorGroup.name,
-							year,
-							values: indicatorValues,
-							key: `${orgUnit};${year};${indicatorGroup.id}`,
-						});
+					mappedIndicatorValues.push({
+						objectiveId: indicatorGroup.id,
+						objective: indicatorGroup.name,
+						thematicArea: indicatorGroup.thematicArea,
+						values: indicatorValues,
+						key: `${orgUnit};${indicatorGroup.id}`,
 					});
 				});
 			}
 
 			console.log("mappedIndicatorValues", mappedIndicatorValues);
-
+			if (this.selectedThematicAreaArray.length > 0) {
+				let mapo = {};
+				mappedIndicatorValues.forEach((iv) => {
+					if (!mapo[iv.thematicArea]) {
+						mapo[iv.thematicArea] = iv;
+					} else {
+						mapo[iv.thematicArea].values = [
+							...mapo[iv.thematicArea].values,
+							...iv.values,
+						]
+					}
+				});
+				mappedIndicatorValues = Object.values(mapo);
+			}
 			return mappedIndicatorValues;
 		} catch (e) {
 			console.log("error", e);
@@ -278,7 +292,6 @@ export class Store {
 			});
 		});
 
-		
 		if (this.selectedThematicAreaArray.length > 0)
 			return this._groupIndicatorsByThematicAreas(indicatorMaps);
 		else return indicatorMaps;
@@ -293,7 +306,8 @@ export class Store {
 				if (!indicatorMap[area.id]) {
 					indicatorMap[area.id] = {
 						id: area.id,
-						name: area.name,
+						name: group.name,
+						thematicArea: area.name,
 						indicators: [],
 					};
 				}
@@ -436,15 +450,14 @@ export class Store {
 	}
 
 	get hasThematicAreas() {
-		const hasManyOrgs = this.selectedOrgUnit?.length > 1;
-		const hasManyYrs = this.selectedYear?.length > 1;
-		const hasManyObjectives = this.selectedObjective?.length > 1;
+		const hasManyOrgs = this.selectedOrgUnitArray.length > 1;
+		const hasManyYrs = this.selectedYearArray.length > 1;
+		const hasManyObjectives = this.selectedObjectiveArray.length > 1;
 		const hasSelectedThematicArea = this.selectedThematicAreaArray.length > 0;
 		return (
-			hasManyOrgs ||
-			hasManyYrs ||
-			hasManyObjectives ||
-			hasSelectedThematicArea
+			//hasManyOrgs ||
+			//hasManyYrs ||
+			hasManyObjectives || hasSelectedThematicArea
 		);
 	}
 }
