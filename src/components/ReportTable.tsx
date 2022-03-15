@@ -92,6 +92,18 @@ export const ReportTable = observer(() => {
 		}
 	};
 
+	const cellStyle = (indicator) => {
+		let style = {}
+		if (indicator.percentage != null) {
+			style.backgroundColor = indicator.color;
+
+			if (indicator.color == "red")
+				style.color = "#fff"
+		}
+
+		return style;
+	}
+
 	const renderIndicatorTableCells = (indicator) => {
 		return (
 			<>
@@ -101,7 +113,7 @@ export const ReportTable = observer(() => {
 				<td>0</td>
 				<td>{indicator.target ?? "N/A"}</td>
 				<td>{indicator.actual ?? "N/A"}</td>
-				<td style={{ backgroundColor: indicator.color }}>
+				<td style={cellStyle(indicator)}>
 					{indicator.percentage != null ? `${indicator.percentage}%` : "N/A"}
 				</td>
 				<td>{indicator.quartelyValues?.[0] ?? "N/A"}</td>
