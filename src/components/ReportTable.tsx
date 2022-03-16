@@ -97,7 +97,7 @@ export const ReportTable = observer(() => {
 		if (indicator.percentage != null) {
 			style.backgroundColor = indicator.color;
 
-			if (indicator.color == "red")
+			if (indicator.color == "#e41a1c")
 				style.color = "#fff"
 		}
 
