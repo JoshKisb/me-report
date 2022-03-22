@@ -1,10 +1,8 @@
 @import "~antd/dist/antd.css";
 @import "~bootstrap/scss/functions";
 
-
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
-
 
 @import "~bootstrap/scss/root";
 @import "~bootstrap/scss/reboot";
@@ -40,13 +38,13 @@
 	border: none;
 
 	thead tr:nth-child(1) th {
-	  position: sticky;
-	  top: -1px;
-	  z-index: 10;
+		position: sticky;
+		top: -1px;
+		z-index: 10;
 	}
-	thead tr:nth-child(2) th { 
-		position: sticky; 
-		top: 39px; 
+	thead tr:nth-child(2) th {
+		position: sticky;
+		top: 39px;
 	}
 }
 
@@ -75,4 +73,14 @@
 
 .filterList {
 	flex: 1;
+}
+
+.filterSearch {
+	position: sticky;
+	top: 0px;
+	left: 0;
+	right: 0;
+	padding: 10px 0;
+	background: white;
+	z-index: 2;
 }

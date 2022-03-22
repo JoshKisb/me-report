@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useStore } from "../store";
 import { CSVLink } from "react-csv";
-import { Button, Drawer, Checkbox } from "antd";
+import { Button, Drawer, Checkbox, Input } from "antd";
 import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
 import { useStateWithCallbackLazy } from "use-state-with-callback";
 
@@ -15,6 +15,8 @@ const styles = {
 	},
 };
 
+const { Search } = Input;
+
 export const ReportTable = observer(() => {
 	const store = useStore();
 	const [loading, setLoading] = useState(false);
@@ -22,6 +24,8 @@ export const ReportTable = observer(() => {
 	const [indicators, setIndicators] = useState([]);
 	const [filteredIndicators, setFilteredIndicators] = useState([]);
 	const [filters, setFilters] = useState([]);
+	const [idxFilters, setIdxFilters] = useState([]);
+	const [search, setSearch] = useState("");
 	const [csvData, setCsvData] = useStateWithCallbackLazy([]);
 	const csvBtn = useRef(null);
 	const [visible, setVisible] = useState(false);
@@ -50,10 +54,22 @@ export const ReportTable = observer(() => {
 		filterIndicators();
 	}, [filters, indicators]);
 
+	useEffect(() => {
+		let idx = store.indicators;
+		const _search = search.toLowerCase();
+
+		if (!!_search) {
+			idx = idx.filter((i) => {
+				return (
+					i.name.toLowerCase().indexOf(_search) >= 0 ||
+					i.id.toLowerCase().indexOf(_search) >= 0
+				);
+			});
+		}
+		setIdxFilters(idx);
+	}, [indicators, search]);
+
 	const filterIndicators = () => {
-		console.log("filters", filters);
-		console.log("indicators", indicators);
-		
 		let filtered = indicators;
 
 		if (filters.length > 0) {
@@ -69,7 +85,6 @@ export const ReportTable = observer(() => {
 				})
 				.filter((area) => area.values.length > 0);
 		}
-		console.log("filtered", filtered);
 		setFilteredIndicators(filtered);
 	};
 
@@ -140,6 +155,11 @@ export const ReportTable = observer(() => {
 
 	const onFilter = (checkedValues) => {
 		setFilters(checkedValues);
+	};
+
+	const onSearch = (e) => {
+		console.log("Search", e);
+		setSearch(e.target.value);
 	};
 
 	const cellStyle = (indicator) => {
@@ -267,9 +287,22 @@ export const ReportTable = observer(() => {
 						width={720}
 						onClose={onClose}
 						visible={visible}
+						bodyStyle={{ paddingTop: 0 }}
 					>
-						<Checkbox.Group style={{ width: "100%" }} onChange={onFilter}>
-							{store.indicators?.map((indicator) => (
+						<div className="filterSearch">
+							<Input
+								placeholder="Search..."
+								allowClear
+								onChange={onSearch}
+								style={{ width: "100%" }}
+							/>
+						</div>
+
+						<Checkbox.Group
+							style={{ width: "100%", marginTop: "12px" }}
+							onChange={onFilter}
+						>
+							{idxFilters.map((indicator) => (
 								<p key={indicator.id}>
 									<Checkbox value={indicator.id}>
 										{indicator.name}
