@@ -14,6 +14,7 @@ export class Store {
 	selectedThematicArea?: any;
 	selectedObjective?: any;
 	selectedYear?: any;
+	indicators?: any;
 
 	constructor(engine) {
 		makeAutoObservable(this);
@@ -102,10 +103,11 @@ export class Store {
 			const indicatorMaps = this._createIndicatorMaps(indicatorGroups);
 
 			console.log("indicatorMaps", indicatorMaps);
+			const indicators = indicatorGroups.flatMap(group => group.indicators)
+			const indicatorIds = indicators.map((indicator) => indicator.id);
 
-			const indicatorIds = indicatorGroups.flatMap((group) =>
-				group.indicators.map((indicator) => indicator.id)
-			);
+			this.indicators = indicators;
+
 			const dx = indicatorIds.join(";");
 
 			let mappedIndicatorValues = [];
@@ -293,6 +295,11 @@ export class Store {
 			console.log("error", e);
 		}
 	};
+
+	// // combine targets and actuals then return indicators
+	// _getIndicatorsFromGroups = (indicatorGroups: any) => {
+
+	// }
 
 	/*
 		@returns
@@ -505,6 +512,11 @@ export class Store {
 			: !!this.selectedThematicArea
 			? [this.selectedThematicArea]
 			: [];
+	}
+	get selectedProjectArray() {
+		return Array.isArray(this.selectedProject)
+			? this.selectedProject
+			: [this.selectedProject];
 	}
 	get selectedObjectiveArray() {
 		return Array.isArray(this.selectedObjective)

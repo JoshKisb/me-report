@@ -2,8 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { useStore } from "../store";
 import { CSVLink } from "react-csv";
-import { Button } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Button, Drawer, Checkbox } from "antd";
+import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
 import { useStateWithCallbackLazy } from "use-state-with-callback";
 
 const styles = {
@@ -22,6 +22,7 @@ export const ReportTable = observer(() => {
 	const [indicators, setIndicators] = useState([]);
 	const [csvData, setCsvData] = useStateWithCallbackLazy([]);
 	const csvBtn = useRef(null);
+	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
 		if (!store || !store.fieldsSelected) return;
@@ -92,17 +93,28 @@ export const ReportTable = observer(() => {
 		}
 	};
 
+	const showDrawer = () => {
+		setVisible(true);
+	};
+
+	const onClose = () => {
+		setVisible(false);
+	};
+
+	const onFilter = (checkedValues) => {
+		console.log("checked = ", checkedValues);
+	};
+
 	const cellStyle = (indicator) => {
-		let style = {}
+		let style = {};
 		if (indicator.percentage != null) {
 			style.backgroundColor = indicator.color;
 
-			if (indicator.color == "#e41a1c")
-				style.color = "#fff"
+			if (indicator.color == "#e41a1c") style.color = "#fff";
 		}
 
 		return style;
-	}
+	};
 
 	const renderIndicatorTableCells = (indicator) => {
 		return (
@@ -114,7 +126,9 @@ export const ReportTable = observer(() => {
 				<td>{indicator.target ?? "N/A"}</td>
 				<td>{indicator.actual ?? "N/A"}</td>
 				<td style={cellStyle(indicator)}>
-					{indicator.percentage != null ? `${indicator.percentage}%` : "N/A"}
+					{indicator.percentage != null
+						? `${indicator.percentage}%`
+						: "N/A"}
 				</td>
 				<td>{indicator.quartelyValues?.[0] ?? "N/A"}</td>
 				<td>{indicator.quartelyValues?.[1] ?? "N/A"}</td>
@@ -193,6 +207,27 @@ export const ReportTable = observer(() => {
 					>
 						Download CSV
 					</Button>
+
+					<div className="row mb-3">
+						<div className="col-sm-2">
+							<Button icon={<FilterOutlined />} onClick={showDrawer} />
+						</div>
+					</div>
+
+					<Drawer
+						title="Filter Indicators"
+						placement="right"
+						onClose={onClose}
+						visible={visible}
+					>
+						<Checkbox.Group style={{ width: "100%" }} onChange={onFilter}>
+							{store.indicators.map((indicator) => (
+								<Checkbox value={indicator.id}>
+									{indicator.name}
+								</Checkbox>
+							))}
+						</Checkbox.Group>
+					</Drawer>
 
 					<table className="report-table table table-bordered">
 						<thead class="table-dark">

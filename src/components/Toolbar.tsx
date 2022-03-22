@@ -33,14 +33,17 @@ export const Toolbar = observer(() => {
 	// change objectives when project changes
 	useEffect(() => {
 		setObjectives([]);
-		store.setSelectedObjective(null);
+		store.setSelectedObjective([]);
 
-		if (!store.selectedProject) return;
+		if (store.selectedProjectArray.length == 0) return;
 
-		const projectObj = store.projects.find(
-			(p) => p.id === store.selectedProject
+		console.log("selectedProjectArray", store.selectedProjectArray)
+		const projects = store.projects.filter((p) =>
+			store.selectedProjectArray.includes(p.id)
 		);
-		setObjectives(projectObj.objectives);
+
+		const objectives = projects.flatMap((p) => p.objectives);
+		setObjectives(objectives);
 	}, [store?.selectedProject]);
 
 	// change objectives when thematic area changes
@@ -86,6 +89,7 @@ export const Toolbar = observer(() => {
 							onChange={store.setSelectedProject}
 							value={store.selectedProject}
 							allowClear={true}
+							mode="multiple"
 							options={store.projects}
 							filterOption={(input, option) => {
 								console.log(option);
@@ -109,6 +113,7 @@ export const Toolbar = observer(() => {
 							onChange={store.setSelectedThematicArea}
 							allowClear={true}
 							mode="multiple"
+							value={store.selectedThematicArea}
 							options={store.thematicAreas}
 							filterOption={(input, option) => {
 								console.log(option);
@@ -119,7 +124,7 @@ export const Toolbar = observer(() => {
 								);
 							}}
 						/>
-					</div>
+					</div>					
 				</Col>
 				<Col className="gutter-row" xs={24} md={5} lg={5}>
 					<div style={styles.selectBox}>
@@ -131,7 +136,7 @@ export const Toolbar = observer(() => {
 							fieldNames={{ label: "name", value: "id" }}
 							onChange={store.setSelectedObjective}
 							allowClear={true}
-							// mode="multiple"
+							mode="multiple"
 							value={store.selectedObjective}
 							options={objectives}
 							filterOption={(input, option) => {
