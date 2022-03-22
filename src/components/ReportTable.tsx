@@ -20,6 +20,8 @@ export const ReportTable = observer(() => {
 	const [loading, setLoading] = useState(false);
 	const [loadingCSV, setLoadingCSV] = useState(false);
 	const [indicators, setIndicators] = useState([]);
+	const [filteredIndicators, setFilteredIndicators] = useState([]);
+	const [filters, setFilters] = useState([]);
 	const [csvData, setCsvData] = useStateWithCallbackLazy([]);
 	const csvBtn = useRef(null);
 	const [visible, setVisible] = useState(false);
@@ -30,8 +32,8 @@ export const ReportTable = observer(() => {
 
 		store
 			.fetchIndicators()
-			.then((indicators) => {
-				setIndicators(indicators);
+			.then((_indicators) => {
+				setIndicators(_indicators);
 			})
 			.finally(() => {
 				console.log("hasThematicAreas", store.hasThematicAreas);
@@ -43,6 +45,22 @@ export const ReportTable = observer(() => {
 		store?.selectedYear,
 		store?.selectedThematicArea,
 	]);
+
+	useEffect(() => {
+		filterIndicators();
+	}, [filters, indicators]);
+
+	const filterIndicators = () => {
+		console.log("filters", filters);
+		console.log("indicators", indicators);
+		setFilteredIndicators(indicators);
+	};
+
+	const getFilterIndicators = () => {
+		return store.indicators?.filter((i) => {
+			return filters.includes(i.id);
+		}) ?? [];
+	};
 
 	const prepareCSV = (event) => {
 		if (!loadingCSV) {
@@ -102,7 +120,7 @@ export const ReportTable = observer(() => {
 	};
 
 	const onFilter = (checkedValues) => {
-		console.log("checked = ", checkedValues);
+		setFilters(checkedValues);
 	};
 
 	const cellStyle = (indicator) => {
@@ -208,9 +226,16 @@ export const ReportTable = observer(() => {
 						Download CSV
 					</Button>
 
-					<div className="row mb-3">
-						<div className="col-sm-2">
+					<div className="d-flex mb-3">
+						<div className="filterBtn">
 							<Button icon={<FilterOutlined />} onClick={showDrawer} />
+						</div>
+						<div className="filterList">
+							{getFilterIndicators().map((i) => (
+								<span key={i.id} class="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark">
+									{i.name}
+								</span>
+							))}
 						</div>
 					</div>
 
@@ -223,7 +248,7 @@ export const ReportTable = observer(() => {
 					>
 						<Checkbox.Group style={{ width: "100%" }} onChange={onFilter}>
 							{store.indicators?.map((indicator) => (
-								<p>
+								<p key={indicator.id}>
 									<Checkbox value={indicator.id}>
 										{indicator.name}
 									</Checkbox>
@@ -255,7 +280,7 @@ export const ReportTable = observer(() => {
 							</tr>
 						</thead>
 						<tbody>
-							{indicators.map((area) => (
+							{filteredIndicators.map((area) => (
 								<React.Fragment key={area.key}>
 									{renderThematicRow(area)}
 								</React.Fragment>

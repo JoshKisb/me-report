@@ -14,7 +14,7 @@ export class Store {
 	selectedThematicArea?: any;
 	selectedObjective?: any;
 	selectedYear?: any;
-	indicators?: any;
+	indicators?: any = [];
 
 	constructor(engine) {
 		makeAutoObservable(this);
@@ -253,7 +253,7 @@ export class Store {
 										: value;
 
 								return {
-									id: indicator.actualId || indicator.targetId,
+									id: indicator.id,
 									name: indicator.name,
 									quartelyValues: qVals,
 									orgUnit,
