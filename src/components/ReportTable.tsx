@@ -53,13 +53,32 @@ export const ReportTable = observer(() => {
 	const filterIndicators = () => {
 		console.log("filters", filters);
 		console.log("indicators", indicators);
-		setFilteredIndicators(indicators);
+		
+		let filtered = indicators;
+
+		if (filters.length > 0) {
+			filtered = indicators
+				.map((area) => {
+					const vals = area.values.filter((indx) =>
+						filters.includes(indx.id)
+					);
+					return {
+						...area,
+						values: vals,
+					};
+				})
+				.filter((area) => area.values.length > 0);
+		}
+		console.log("filtered", filtered);
+		setFilteredIndicators(filtered);
 	};
 
 	const getFilterIndicators = () => {
-		return store.indicators?.filter((i) => {
-			return filters.includes(i.id);
-		}) ?? [];
+		return (
+			store.indicators?.filter((i) => {
+				return filters.includes(i.id);
+			}) ?? []
+		);
 	};
 
 	const prepareCSV = (event) => {
@@ -232,7 +251,10 @@ export const ReportTable = observer(() => {
 						</div>
 						<div className="filterList">
 							{getFilterIndicators().map((i) => (
-								<span key={i.id} class="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark">
+								<span
+									key={i.id}
+									class="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
+								>
 									{i.name}
 								</span>
 							))}

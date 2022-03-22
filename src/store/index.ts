@@ -556,7 +556,8 @@ export class Store {
 		return (
 			//hasManyOrgs ||
 			//hasManyYrs ||
-			hasManyObjectives || hasSelectedThematicArea
+			//hasManyObjectives || 
+			hasSelectedThematicArea
 		);
 	}
 }
