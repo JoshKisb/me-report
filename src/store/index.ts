@@ -103,10 +103,15 @@ export class Store {
 			const indicatorMaps = this._createIndicatorMaps(indicatorGroups);
 
 			console.log("indicatorMaps", indicatorMaps);
-			const indicators = indicatorGroups.flatMap(group => group.indicators)
-			const indicatorIds = indicators.map((indicator) => indicator.id);
-
+			
+			const indicators = indicatorMaps.flatMap(group => group.indicators)
 			this.indicators = indicators;
+
+			const indicatorIds = indicatorGroups.flatMap((group) =>
+				group.indicators.map((indicator) => indicator.id)
+			);
+
+			console.log("this.indicators", this.indicators);
 
 			const dx = indicatorIds.join(";");
 
@@ -323,6 +328,7 @@ export class Store {
 			const addIndicatorToMap = (key, name, colors, thematicArea, type) => {
 				if (!indicatorMap.hasOwnProperty(key)) {
 					indicatorMap[key] = {
+						id: key,
 						name: name,
 						colors: colors,
 						thematicArea,

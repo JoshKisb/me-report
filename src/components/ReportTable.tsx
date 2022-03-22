@@ -217,14 +217,17 @@ export const ReportTable = observer(() => {
 					<Drawer
 						title="Filter Indicators"
 						placement="right"
+						width={720}
 						onClose={onClose}
 						visible={visible}
 					>
 						<Checkbox.Group style={{ width: "100%" }} onChange={onFilter}>
-							{store.indicators.map((indicator) => (
-								<Checkbox value={indicator.id}>
-									{indicator.name}
-								</Checkbox>
+							{store.indicators?.map((indicator) => (
+								<p>
+									<Checkbox value={indicator.id}>
+										{indicator.name}
+									</Checkbox>
+								</p>
 							))}
 						</Checkbox.Group>
 					</Drawer>
