@@ -121,7 +121,7 @@ export class Store {
 
 			for (const orgUnit of orgUnits) {
 				const orgUnitName = this.getOrgUnitName(orgUnit);
-				const url = `/api/36/analytics?dimension=dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false`;
+				const url = `/api/29/analytics?dimension=rJ9cwmnKoP1:MAKKtv2MQbt;UwHkqmSsQ7i,dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&skipMeta=true&includeNumDen=true`;
 				const result = await this.engine.link.fetch(url);
 
 				console.log("Result", result);
@@ -147,14 +147,16 @@ export class Store {
 								const actualYrRow = result.rows.find(
 									(row) =>
 										row[indexes.dx] === indicator.actualId &&
-										row[indexes.pe] === `${year}`
+										row[indexes.pe] === `${year}` &&
+										row[indexes.rJ9cwmnKoP1] === 'UwHkqmSsQ7i'
 								);
 								systemActual = actualYrRow?.[indexes.value];
 
 								const targetYrRow = result.rows.find(
 									(row) =>
 										row[indexes.dx] === indicator.targetId &&
-										row[indexes.pe] === `${year}`
+										row[indexes.pe] === `${year}` &&
+										row[indexes.rJ9cwmnKoP1] === 'MAKKtv2MQbt'
 								);
 								systemTarget = targetYrRow?.[indexes.value];
 
@@ -170,14 +172,16 @@ export class Store {
 									const actualRow = result.rows.find(
 										(row) =>
 											row[indexes.dx] === indicator.actualId &&
-											row[indexes.pe] === pe
+											row[indexes.pe] === pe &&
+											row[indexes.rJ9cwmnKoP1] === 'UwHkqmSsQ7i'
 									);
 
 									// Target
 									const targetRow = result.rows.find(
 										(row) =>
-											row[indexes.dx] === indicator.targetId &&
-											row[indexes.pe] === pe
+											row[indexes.dx] === indicator.actualId &&
+											row[indexes.pe] === pe &&
+											row[indexes.rJ9cwmnKoP1] === 'MAKKtv2MQbt'
 									);
 
 									const actualValue = actualRow?.[indexes.value];
@@ -350,14 +354,15 @@ export class Store {
 				const actMatch = indicator.code.match(actRe);
 
 				if (!!tagMatch) {
-					addIndicatorToMap(
-						tagMatch[1],
-						indicator.description,
-						colors,
-						thematicArea,
-						indicator.indicatorType.id
-					);
-					indicatorMap[tagMatch[1]].targetId = indicator.id;
+					// skip TAGs now
+					// addIndicatorToMap(
+					// 	tagMatch[1],
+					// 	indicator.description,
+					// 	colors,
+					// 	thematicArea,
+					// 	indicator.indicatorType.id
+					// );
+					// indicatorMap[tagMatch[1]].targetId = indicator.id;
 				} else if (!!actMatch) {
 					addIndicatorToMap(
 						actMatch[1],
