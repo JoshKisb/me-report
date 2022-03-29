@@ -75,6 +75,26 @@ export const Toolbar = observer(() => {
 				<Col className="gutter-row" xs={24} md={7}>
 					<div style={styles.selectBox}>
 						<p style={styles.label}>Selected Organisation Unit</p>
+						
+						<Select
+							showSearch
+							placeholder="Select Organisation Unit Group"
+							optionFilterProp="label"
+							fieldNames={{ label: "name", value: "id" }}
+							onChange={store.setSelectedOrgUnitGroup}
+							value={store.selectedOrgUnitGroup}
+							allowClear={true}
+							// mode="multiple"
+							options={store.orgUnitGroups}
+							filterOption={(input, option) => {
+								return (
+									option.name
+										.toLowerCase()
+										.indexOf(input.toLowerCase()) >= 0
+								);
+							}}
+						/>
+
 						<OrgUnitTree />
 					</div>
 				</Col>

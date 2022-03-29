@@ -7,7 +7,9 @@ const thematicAreaId = "uiuTNKXPniu";
 export class Store {
 	engine: any;
 	userOrgUnits: any = [];
+	orgUnitGroups?: any = [];
 	selectedOrgUnit?: any;
+	selectedOrgUnitGroup?: any;
 	projects: any;
 	selectedProject?: any;
 	thematicAreas?: any;
@@ -22,10 +24,18 @@ export class Store {
 		this.userOrgUnits = [];
 		this.projects = [];
 		this.thematicAreas = [];
+		this.orgUnitGroups = [];
 	}
 
 	setSelectedOrgUnit = (orgUnit) => {
 		this.selectedOrgUnit = orgUnit;
+	};
+
+	setSelectedOrgUnitGroup = (orgUnitGroup) => {
+		this.selectedOrgUnitGroup = orgUnitGroup;
+		const group = this.orgUnitGroups.find((g) => g.id == orgUnitGroup);
+		const orgUnits = group?.organisationUnits?.map((o) => o.id) ?? [];
+		//this.setSelectedOrgUnit(orgUnits);
 	};
 
 	setSelectedProject = (project) => {
@@ -46,7 +56,14 @@ export class Store {
 	};
 
 	getOrgUnitName = (orgUnit) => {
-		return this.userOrgUnits.find((org) => org.id === orgUnit)?.name;
+		let group = this.userOrgUnits.find((org) => org.id === orgUnit);
+		if (!group) {
+			for ( const g of this.orgUnitGroups ){
+			    group = g.organisationUnits.find(o => o.id == orgUnit);
+			    if (!!group) break;
+			}
+		}
+		return group?.name;
 	};
 
 	fetchIndicators = async () => {
@@ -103,8 +120,8 @@ export class Store {
 			const indicatorMaps = this._createIndicatorMaps(indicatorGroups);
 
 			console.log("indicatorMaps", indicatorMaps);
-			
-			const indicators = indicatorMaps.flatMap(group => group.indicators)
+
+			const indicators = indicatorMaps.flatMap((group) => group.indicators);
 			this.indicators = indicators;
 
 			const indicatorIds = indicatorGroups.flatMap((group) =>
@@ -148,7 +165,7 @@ export class Store {
 									(row) =>
 										row[indexes.dx] === indicator.actualId &&
 										row[indexes.pe] === `${year}` &&
-										row[indexes.rJ9cwmnKoP1] === 'UwHkqmSsQ7i'
+										row[indexes.rJ9cwmnKoP1] === "UwHkqmSsQ7i"
 								);
 								systemActual = actualYrRow?.[indexes.value];
 
@@ -156,7 +173,7 @@ export class Store {
 									(row) =>
 										row[indexes.dx] === indicator.targetId &&
 										row[indexes.pe] === `${year}` &&
-										row[indexes.rJ9cwmnKoP1] === 'MAKKtv2MQbt'
+										row[indexes.rJ9cwmnKoP1] === "MAKKtv2MQbt"
 								);
 								systemTarget = targetYrRow?.[indexes.value];
 
@@ -173,7 +190,7 @@ export class Store {
 										(row) =>
 											row[indexes.dx] === indicator.actualId &&
 											row[indexes.pe] === pe &&
-											row[indexes.rJ9cwmnKoP1] === 'UwHkqmSsQ7i'
+											row[indexes.rJ9cwmnKoP1] === "UwHkqmSsQ7i"
 									);
 
 									// Target
@@ -181,7 +198,7 @@ export class Store {
 										(row) =>
 											row[indexes.dx] === indicator.actualId &&
 											row[indexes.pe] === pe &&
-											row[indexes.rJ9cwmnKoP1] === 'MAKKtv2MQbt'
+											row[indexes.rJ9cwmnKoP1] === "MAKKtv2MQbt"
 									);
 
 									const actualValue = actualRow?.[indexes.value];
@@ -220,16 +237,13 @@ export class Store {
 												targetRow?.[indexes.denominator] || 0
 											);
 
-											totalTarget += qTVals[i] * ( n / d);
+											totalTarget += qTVals[i] * (n / d);
 										}
-
-										
 									} else {
 										totalActual += qVals[i] || 0;
 										totalTarget += qTVals[i] || 0;
 									}
 								}
-
 
 								// set total to null instead of 0
 								if (qTVals.every((x) => x == null)) totalTarget = null;
@@ -418,6 +432,13 @@ export class Store {
 
 	loadOrgUnitRoots = async () => {
 		const query = {
+			orgUnitGroups: {
+				resource: "organisationUnitGroups.json",
+				params: {
+					fields: "id,name,organisationUnits[id,name]",
+					paging: false,
+				},
+			},
 			organisationUnits: {
 				resource: "organisationUnits.json",
 				params: {
@@ -432,6 +453,7 @@ export class Store {
 			const data = await this.engine.query(query);
 			console.log("loadUserOrgUnits:", data);
 			this.userOrgUnits = data.organisationUnits.organisationUnits;
+			this.orgUnitGroups = data.orgUnitGroups.organisationUnitGroups;
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -476,7 +498,7 @@ export class Store {
 				resource: `indicatorGroupSets/${thematicAreaId}.json`,
 				params: {
 					paging: false,
-					fields: "indicatorGroups[id,name,indicators[name,id]]",
+					fields: "indicatorGroups[id,name,indicators[name,id,code]]",
 				},
 			},
 		};
@@ -535,9 +557,22 @@ export class Store {
 			: [this.selectedObjective];
 	}
 	get selectedOrgUnitArray() {
-		return Array.isArray(this.selectedOrgUnit)
+		const group = this.orgUnitGroups.find(
+			(g) => g.id == this.selectedOrgUnitGroup
+		);
+		let orgUnitGroupOrgs = group?.organisationUnits;
+
+		let orgUnits = Array.isArray(this.selectedOrgUnit)
 			? this.selectedOrgUnit
-			: [this.selectedOrgUnit];
+			: !!this.selectedOrgUnit
+			? [this.selectedOrgUnit]
+			: [];
+
+		console.log("orgUnitGroupOrgs", orgUnitGroupOrgs);
+		console.log("orgUnits", orgUnits);
+		return orgUnits.length > 0
+			? orgUnits
+			: orgUnitGroupOrgs?.map((o) => o.id) ?? [];
 	}
 	get selectedYearArray() {
 		return Array.isArray(this.selectedYear)
@@ -549,7 +584,7 @@ export class Store {
 		return (
 			!!this.selectedObjective?.length &&
 			!!this.selectedYear?.length &&
-			!!this.selectedOrgUnit?.length
+			!!this.selectedOrgUnitArray?.length
 		);
 	}
 
@@ -561,7 +596,7 @@ export class Store {
 		return (
 			//hasManyOrgs ||
 			//hasManyYrs ||
-			//hasManyObjectives || 
+			//hasManyObjectives ||
 			hasSelectedThematicArea
 		);
 	}
