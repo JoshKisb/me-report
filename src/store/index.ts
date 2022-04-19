@@ -270,6 +270,10 @@ export class Store {
 										? Number(value).toFixed(1)
 										: value;
 
+								// remove rows with 0 for total actual and target
+								if (!totalActual && !totalTarget)
+									return;
+
 								return {
 									id: indicator.id,
 									name: indicator.name,
@@ -292,7 +296,7 @@ export class Store {
 						objectiveId: indicatorGroup.id,
 						objective: indicatorGroup.name,
 						thematicArea: indicatorGroup.thematicArea,
-						values: indicatorValues,
+						values: indicatorValues.filter(v => !!v),
 						key: `${orgUnit};${indicatorGroup.id}`,
 					});
 				});
@@ -302,6 +306,7 @@ export class Store {
 			if (this.selectedThematicAreaArray.length > 0) {
 				let mapo = {};
 				mappedIndicatorValues.forEach((iv) => {
+					if (iv.values.length == 0) return;
 					if (!mapo[iv.thematicArea]) {
 						mapo[iv.thematicArea] = iv;
 					} else {
