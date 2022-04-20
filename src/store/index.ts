@@ -219,16 +219,7 @@ export class Store {
 										}
 									} else if (indicator.type == "Vejcb1Wvjrc") {
 										// Cumulative percentage"
-										if (!!actualValue) {
-											const n = parseFloat(
-												actualRow?.[indexes.numerator] || 0
-											);
-											const d = parseFloat(
-												actualRow?.[indexes.denominator] || 0
-											);
-											totalActual += qVals[i] * (n / d);
-										}
-
+										
 										if (!!tagValue) {
 											const n = parseFloat(
 												targetRow?.[indexes.numerator] || 0
@@ -236,13 +227,30 @@ export class Store {
 											const d = parseFloat(
 												targetRow?.[indexes.denominator] || 0
 											);
-
-											totalTarget += qTVals[i] * (n / d);
+											totalDT += d;
+											totalTarget += qTVals[i] * n;
 										}
+
+										if (!!actualValue) {
+											const n = parseFloat(
+												actualRow?.[indexes.numerator] || 0
+											);
+											const d = parseFloat(
+												actualRow?.[indexes.denominator] || 0
+											);
+											totalDA += d;
+											totalActual += (qVals[i] * n);
+										}
+										// totalActual = totalActual / totalTarget
 									} else {
 										totalActual += qVals[i] || 0;
 										totalTarget += qTVals[i] || 0;
 									}
+								}
+
+								if (indicator.type == "Vejcb1Wvjrc") {
+									totalActual = totalActual / totalDA;
+									totalTarget = totalTarget / totalDT;
 								}
 
 								// set total to null instead of 0
