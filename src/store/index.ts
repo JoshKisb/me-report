@@ -488,7 +488,7 @@ export class Store {
 		try {
 			const data = await this.engine.query(query);
 			const found = data.organisations.organisationUnits.map((unit: any) => {
-				return unit.children.map((child: any) => {
+				return unit.children.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map((child: any) => {
 					return { ...child, pId: parent };
 				});
 			});
