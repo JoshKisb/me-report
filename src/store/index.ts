@@ -228,7 +228,7 @@ export class Store {
 												targetRow?.[indexes.denominator] || 0
 											);
 											totalDT += d;
-											totalTarget += qTVals[i] * n;
+											totalTarget = qTVals[i];
 										}
 
 										if (!!actualValue) {
@@ -239,7 +239,7 @@ export class Store {
 												actualRow?.[indexes.denominator] || 0
 											);
 											totalDA += d;
-											totalActual += (qVals[i] * n);
+											totalActual += n;
 										}
 										// totalActual = totalActual / totalTarget
 									} else {
@@ -249,8 +249,8 @@ export class Store {
 								}
 
 								if (indicator.type == "Vejcb1Wvjrc") {
-									totalActual = totalActual / totalDA;
-									totalTarget = totalTarget / totalDT;
+									totalActual = (totalActual / totalDA) * 100;
+									// totalTarget = totalTarget / totalDT;
 								}
 
 								// set total to null instead of 0
@@ -259,7 +259,9 @@ export class Store {
 
 								let percentage = null;
 
-								if (totalActual !== null && totalTarget !== null) {
+								if (indicator.type == "Vejcb1Wvjrc") {
+									percentage = totalActual;
+								} else if (totalActual !== null && totalTarget !== null) {
 									percentage =
 										totalActual === totalTarget
 											? 100
