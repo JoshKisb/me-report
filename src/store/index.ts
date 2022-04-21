@@ -1,6 +1,6 @@
 import React from "react";
 import { observable, runInAction, makeAutoObservable, toJS } from "mobx";
-import { flatten } from "lodash";
+import { flatten, uniqBy } from "lodash";
 
 const thematicAreaId = "uiuTNKXPniu";
 
@@ -58,9 +58,9 @@ export class Store {
 	getOrgUnitName = (orgUnit) => {
 		let group = this.userOrgUnits.find((org) => org.id === orgUnit);
 		if (!group) {
-			for ( const g of this.orgUnitGroups ){
-			    group = g.organisationUnits.find(o => o.id == orgUnit);
-			    if (!!group) break;
+			for (const g of this.orgUnitGroups) {
+				group = g.organisationUnits.find((o) => o.id == orgUnit);
+				if (!!group) break;
 			}
 		}
 		return group?.name;
@@ -219,7 +219,7 @@ export class Store {
 										}
 									} else if (indicator.type == "Vejcb1Wvjrc") {
 										// Cumulative percentage"
-										
+
 										if (!!tagValue) {
 											const n = parseFloat(
 												targetRow?.[indexes.numerator] || 0
@@ -261,7 +261,10 @@ export class Store {
 
 								if (indicator.type == "Vejcb1Wvjrc") {
 									percentage = totalActual;
-								} else if (totalActual !== null && totalTarget !== null) {
+								} else if (
+									totalActual !== null &&
+									totalTarget !== null
+								) {
 									percentage =
 										totalActual === totalTarget
 											? 100
@@ -281,8 +284,7 @@ export class Store {
 										: value;
 
 								// remove rows with 0 for total actual and target
-								if (!totalActual && !totalTarget)
-									return;
+								if (!totalActual && !totalTarget) return;
 
 								return {
 									id: indicator.id,
@@ -306,7 +308,7 @@ export class Store {
 						objectiveId: indicatorGroup.id,
 						objective: indicatorGroup.name,
 						thematicArea: indicatorGroup.thematicArea,
-						values: indicatorValues.filter(v => !!v),
+						values: indicatorValues.filter((v) => !!v),
 						key: `${orgUnit};${indicatorGroup.id}`,
 					});
 				});
@@ -488,12 +490,52 @@ export class Store {
 		try {
 			const data = await this.engine.query(query);
 			const found = data.organisations.organisationUnits.map((unit: any) => {
-				return unit.children.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map((child: any) => {
-					return { ...child, pId: parent };
-				});
+				return unit.children
+					.sort((a, b) =>
+						a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+					)
+					.map((child: any) => {
+						return { ...child, pId: parent };
+					});
 			});
 			const all = flatten(found);
-			this.userOrgUnits = [...this.userOrgUnits, ...all];
+			const orgs = [...this.userOrgUnits, ...all];
+			this.userOrgUnits = uniqBy(orgs, "id");
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+	loadSearchOrganisationUnits = async (search: string) => {
+		const query = {
+			organisations: {
+				resource: `organisationUnits.json`,
+				params: {
+					filter: `name:ilike:${search}`,
+					paging: "false",
+					fields: "id,name,ancestors[id,name,parent[id]],parent[id]",
+				},
+			},
+		};
+		try {
+			const data = await this.engine.query(query);
+			const found = data.organisations.organisationUnits.flatMap(
+				(unit: any) => {
+					const ancestors = unit.ancestors.map((a) => {
+						return { ...a, pId: a.parent?.id };
+					});
+					return [
+						{ id: unit.id, name: unit.name, pId: unit.parent?.id },
+						...ancestors,
+					];
+				}
+			);
+			// const all = flatten(found);
+			console.log("found", found);
+			const orgs = [...this.userOrgUnits, ...found];
+			this.userOrgUnits = uniqBy(orgs, "id").sort((a, b) =>
+				a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+			);
 		} catch (e) {
 			console.log(e);
 		}

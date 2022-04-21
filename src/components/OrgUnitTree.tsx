@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { TreeSelect } from "antd";
 import { useStore } from "../store";
+import { debounce } from "lodash";
 
 export const OrgUnitTree = observer(() => {
 	const [units, setUnits] = useState([]);
@@ -11,6 +12,12 @@ export const OrgUnitTree = observer(() => {
 		await store.loadOrganisationUnitsChildren(treeNode.id);
 		setUnits(store.organisationUnits);
 	};
+
+	const onSearch = debounce(async (value: string) => {
+		if (!value || value.length < 2) return;
+		await store.loadSearchOrganisationUnits(value);
+		setUnits(store.organisationUnits);
+	}, 750);
 
 	useEffect(() => {
 		if (store.userOrgUnits?.length) {
@@ -28,6 +35,7 @@ export const OrgUnitTree = observer(() => {
 				allowClear={true}
 				treeDataSimpleMode
 				multiple
+				showSearch={true}
 				disabled={!!store.selectedOrgUnitGroup}
 				style={{ width: "100%" }}
 				value={store.selectedOrgUnit}
@@ -35,7 +43,12 @@ export const OrgUnitTree = observer(() => {
 				placeholder={"Select Organisation Unit"}
 				onChange={store.setSelectedOrgUnit}
 				loadData={onLoadData}
+				// treeNodeFilterProp='title'
 				treeData={units}
+				onSearch={onSearch}
+				filterTreeNode={(search, item) => {
+				   return item.title.toLowerCase().indexOf(search.toLowerCase()) >= 0;
+				}}
 			/>
 		</div>
 	);
