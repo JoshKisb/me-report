@@ -66,6 +66,7 @@ export const Toolbar = observer(() => {
 	// }, [store?.selectedThematicArea]);
 
 	useEffect(() => {
+		store.loadOrgUnitRoots();
 		store.loadProjects();
 	}, []);
 
@@ -74,7 +75,7 @@ export const Toolbar = observer(() => {
 			<Row gutter={{ xs: 8, sm: 16 }}>
 				<Col className="gutter-row" xs={24} md={7}>
 					<div style={styles.selectBox}>
-						<p style={styles.label}>Selected Organisation Unit</p>
+						<p style={styles.label}>Selected Organisation Unit Level</p>
 						
 						<Select
 							showSearch
@@ -84,6 +85,7 @@ export const Toolbar = observer(() => {
 							onChange={store.setSelectedOrgUnitGroup}
 							value={store.selectedOrgUnitGroup}
 							allowClear={true}
+							disabled={!!store.selectedLevel}
 							// mode="multiple"
 							options={store.orgUnitGroups}
 							filterOption={(input, option) => {
@@ -95,7 +97,19 @@ export const Toolbar = observer(() => {
 							}}
 						/>
 
-						<OrgUnitTree />
+						<Select
+							placeholder="Select Organisation Unit Level"
+							value={store.selectedLevel}
+							onChange={store.setSelectedLevel}
+							allowClear={true}
+							disabled={!!store.selectedOrgUnitGroup}
+						>
+							<Option value="1">Level 1</Option>
+							<Option value="2">Level 2</Option>
+							<Option value="3">Level 3</Option>
+							<Option value="4">Level 4</Option>
+							<Option value="5">Level 5</Option>
+						</Select>
 					</div>
 				</Col>
 				<Col className="gutter-row" xs={24} md={4}>

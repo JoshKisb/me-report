@@ -8,6 +8,7 @@ export class Store {
 	engine: any;
 	userOrgUnits: any = [];
 	orgUnitGroups?: any = [];
+	selectedLevel?: any;
 	selectedOrgUnit?: any;
 	selectedOrgUnitGroup?: any;
 	projects: any;
@@ -26,6 +27,10 @@ export class Store {
 		this.thematicAreas = [];
 		this.orgUnitGroups = [];
 	}
+
+	setSelectedLevel = (level) => {
+		this.selectedLevel = level;
+	};
 
 	setSelectedOrgUnit = (orgUnit) => {
 		this.selectedOrgUnit = orgUnit;
@@ -58,9 +63,13 @@ export class Store {
 	getOrgUnitName = (orgUnit) => {
 		let group = this.userOrgUnits.find((org) => org.id === orgUnit);
 		if (!group) {
-			for (const g of this.orgUnitGroups) {
-				group = g.organisationUnits.find((o) => o.id == orgUnit);
-				if (!!group) break;
+			if (!!this.selectedLevel && !!this.selectedProjectOrgs)
+				group = this.selectedProjectOrgs.find((o) => o.id == orgUnit);
+			else {
+				for (const g of this.orgUnitGroups) {
+					group = g.organisationUnits.find((o) => o.id == orgUnit);
+					if (!!group) break;
+				}
 			}
 		}
 		return group?.name;
@@ -452,7 +461,8 @@ export class Store {
 			orgUnitGroups: {
 				resource: "organisationUnitGroups.json",
 				params: {
-					fields: "id,name,organisationUnits[id,name]",
+					fields:
+						"id,name,organisationUnits[id,name,ancestors[id,name,level],parent[id]]",
 					paging: false,
 				},
 			},
@@ -469,8 +479,11 @@ export class Store {
 		try {
 			const data = await this.engine.query(query);
 			console.log("loadUserOrgUnits:", data);
-			this.userOrgUnits = data.organisationUnits.organisationUnits;
-			this.orgUnitGroups = data.orgUnitGroups.organisationUnitGroups;
+			const orgs = data.organisationUnits.organisationUnits;
+			const orgUnitGroups = data.orgUnitGroups.organisationUnitGroups;
+
+			this.userOrgUnits = orgs;
+			this.orgUnitGroups = orgUnitGroups;
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -561,7 +574,7 @@ export class Store {
 		};
 		try {
 			const data = await this.engine.query(query);
-			console.log("projects:", data);
+			// console.log("projects:", data);
 
 			this.thematicAreas = data.thematicAreas.indicatorGroups.map((area) => {
 				return {
@@ -613,24 +626,59 @@ export class Store {
 			? this.selectedObjective
 			: [this.selectedObjective];
 	}
-	get selectedOrgUnitArray() {
-		const group = this.orgUnitGroups.find(
-			(g) => g.id == this.selectedOrgUnitGroup
-		);
-		let orgUnitGroupOrgs = group?.organisationUnits;
 
-		let orgUnits = Array.isArray(this.selectedOrgUnit)
-			? this.selectedOrgUnit
-			: !!this.selectedOrgUnit
-			? [this.selectedOrgUnit]
-			: [];
+	get selectedProjectOrgs() {
+		let levelOrgs;
+		if (!!this.selectedLevel && !!this.selectedProjectArray.length) {
+			const selectedProjects = this.projects.filter((p) =>
+				this.selectedProjectArray.includes(p.id)
+			);
+			const orgUnitGroups = this.orgUnitGroups.filter((g) =>
+				selectedProjects.some((p) => p.name === g.name)
+			);
+			levelOrgs = orgUnitGroups.flatMap((g) => {
+				if (this.selectedLevel == 5) return g.organisationUnits;
+
+				return g.organisationUnits.map((org) =>
+					org.ancestors.find((a) => a.level == this.selectedLevel)
+				);
+			});
+
+			console.log("selectedProjects", selectedProjects);
+			console.log("orgUnitGroups", orgUnitGroups);
+			console.log("levelOrgs", levelOrgs);
+		}
+		return levelOrgs;
+	}
+	get selectedOrgUnitArray() {
+		let orgUnitGroupOrgs;
+		let levelOrgs;
+		let orgUnits;
+
+		if (!!this.selectedOrgUnitGroup) {
+			const group = this.orgUnitGroups.find(
+				(g) => g.id == this.selectedOrgUnitGroup
+			);
+			orgUnitGroupOrgs = group?.organisationUnits;
+			orgUnits = orgUnitGroupOrgs?.map((o) => o.id);
+		}
+
+		if (!!this.selectedOrgUnit) {
+			orgUnits = Array.isArray(this.selectedOrgUnit)
+				? this.selectedOrgUnit
+				: [this.selectedOrgUnit];
+		}
+
+		if (!!this.selectedLevel && !!this.selectedProjectOrgs) {
+			orgUnits = this.selectedProjectOrgs.map((o) => o.id);
+		}
 
 		console.log("orgUnitGroupOrgs", orgUnitGroupOrgs);
 		console.log("orgUnits", orgUnits);
-		return orgUnits.length > 0
-			? orgUnits
-			: orgUnitGroupOrgs?.map((o) => o.id) ?? [];
+
+		return orgUnits ?? [];
 	}
+
 	get selectedYearArray() {
 		return Array.isArray(this.selectedYear)
 			? this.selectedYear
