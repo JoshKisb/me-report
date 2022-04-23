@@ -648,7 +648,7 @@ export class Store {
 			console.log("orgUnitGroups", orgUnitGroups);
 			console.log("levelOrgs", levelOrgs);
 		}
-		return levelOrgs;
+		return uniqBy(levelOrgs, 'id');
 	}
 	get selectedOrgUnitArray() {
 		let orgUnitGroupOrgs;
