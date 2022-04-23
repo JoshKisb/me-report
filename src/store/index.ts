@@ -462,7 +462,7 @@ export class Store {
 				resource: "organisationUnitGroups.json",
 				params: {
 					fields:
-						"id,name,organisationUnits[id,name,ancestors[id,name,level],parent[id]]",
+						"id,name,organisationUnits[id,name,level,ancestors[id,name,level],parent[id]]",
 					paging: false,
 				},
 			},
@@ -637,18 +637,21 @@ export class Store {
 				selectedProjects.some((p) => p.name === g.name)
 			);
 			levelOrgs = orgUnitGroups.flatMap((g) => {
-				if (this.selectedLevel == 5) return g.organisationUnits;
-
-				return g.organisationUnits.map((org) =>
-					org.ancestors.find((a) => a.level == this.selectedLevel)
-				);
+				return g.organisationUnits.map((org) => {
+					if (org.level == this.selectedLevel) return org;
+					else
+						return org.ancestors.find(
+							(a) => a.level == this.selectedLevel
+						);
+				});
 			});
+			levelOrgs = uniqBy(levelOrgs, "id");
 
 			console.log("selectedProjects", selectedProjects);
 			console.log("orgUnitGroups", orgUnitGroups);
 			console.log("levelOrgs", levelOrgs);
 		}
-		return uniqBy(levelOrgs, 'id');
+		return levelOrgs;
 	}
 	get selectedOrgUnitArray() {
 		let orgUnitGroupOrgs;
