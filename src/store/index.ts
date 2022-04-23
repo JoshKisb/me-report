@@ -689,7 +689,7 @@ export class Store {
 		return (
 			!!this.selectedObjective?.length &&
 			!!this.selectedYear?.length &&
-			!!this.selectedOrgUnitArray?.length
+			(!!this.selectedOrgUnitArray?.length || !!this.selectedLevel)
 		);
 	}
 
