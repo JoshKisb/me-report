@@ -46,6 +46,7 @@ export const ReportTable = observer(() => {
 	}, [
 		store?.selectedObjective,
 		store?.selectedOrgUnit,
+		store?.selectedLevel,
 		store?.selectedYear,
 		store?.selectedThematicArea,
 	]);
