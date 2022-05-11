@@ -22,7 +22,7 @@ export const ReportTable = observer(() => {
 	const [loading, setLoading] = useState(false);
 	const [loadingCSV, setLoadingCSV] = useState(false);
 	const [indicators, setIndicators] = useState([]);
-	const [filteredIndicators, setFilteredIndicators] = useState([]);
+	const [filteredIndicators, setFilteredIndicators] = useState<any>([]);
 	const [filters, setFilters] = useState([]);
 	const [idxFilters, setIdxFilters] = useState([]);
 	const [search, setSearch] = useState("");
@@ -31,6 +31,7 @@ export const ReportTable = observer(() => {
 	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
+		console.log("checking state", store?.fieldsSelected)
 		if (!store || !store.fieldsSelected) return;
 		setLoading(true);
 
@@ -50,6 +51,7 @@ export const ReportTable = observer(() => {
 		store?.selectedOrgUnitGroup,
 		store?.selectedYear,
 		store?.selectedThematicArea,
+		store?.selectedProject,
 	]);
 
 	useEffect(() => {
@@ -87,6 +89,7 @@ export const ReportTable = observer(() => {
 				})
 				.filter((area) => area.values.length > 0);
 		}
+		console.log("filt", filtered.filter((x: any) => x.values.length > 0))
 		setFilteredIndicators(filtered);
 	};
 
@@ -106,6 +109,7 @@ export const ReportTable = observer(() => {
 				[
 					"OrgUnit",
 					"OrgUnit Name",
+					"Hierarchy",
 					"Year",
 					"Objective",
 					"Objective Id",
@@ -122,7 +126,8 @@ export const ReportTable = observer(() => {
 				...indicators.flatMap((area) =>
 					area.values.map((indicator) => [
 						indicator.orgUnit,
-						indicator.orgUnitName,
+						indicator.orgUnitObj.name,
+						indicator.orgUnitObj.ancestors?.map(a => a.name).join("/"),
 						indicator.year,
 						area.objective,
 						area.objectiveId,
@@ -179,7 +184,7 @@ export const ReportTable = observer(() => {
 		return (
 			<>
 				<td>{indicator.year}</td>
-				<td>{indicator.orgUnitName}</td>
+				<td>{indicator.orgUnitObj.name}</td>
 				<td>{indicator.name}</td>
 				<td>0</td>
 				<td>{indicator.target ?? "N/A"}</td>
@@ -236,7 +241,7 @@ export const ReportTable = observer(() => {
 			{loading && (
 				<div className="loadingWrapper">
 					<div
-						class="spinner-border"
+						className="spinner-border"
 						style={{ width: "3rem", height: "3rem" }}
 						role="status"
 					></div>
@@ -275,7 +280,7 @@ export const ReportTable = observer(() => {
 							{getFilterIndicators().map((i) => (
 								<span
 									key={i.id}
-									class="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
+									className="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
 								>
 									{i.name}
 								</span>

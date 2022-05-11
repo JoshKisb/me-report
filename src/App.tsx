@@ -1,11 +1,12 @@
 import React from "react";
-import { DataQuery, CustomDataProvider } from "@dhis2/app-runtime";
+// import { DataQuery, CustomDataProvider } from "@dhis2/app-runtime";
 import { useDataEngine } from "@dhis2/app-runtime";
 import classes from "./App.module.css";
 import { Toolbar } from "./components/Toolbar";
 import { ReportTable } from "./components/ReportTable";
 import { Store, StoreContext } from "./store";
 
+// import "./App.less";
 import "./theme.scss";
 
 const query = {

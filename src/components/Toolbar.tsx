@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Row, Col, Select, Spin } from "antd";
-import { OrgUnitTree } from "./OrgUnitTree";
 import { observer } from "mobx-react-lite";
-import { useStore } from "../store";
+import { Store, useStore } from "../store";
 
 const { Option } = Select;
 
-const styles = {
+const styles: any = {
 	selectBox: {
 		backgroundColor: "#dedede",
 		display: "flex",
 		flexDirection: "column",
-		padding: "8px",
+		padding: "5px",
 	},
 	label: {
 		marginBottom: "5px",
@@ -25,7 +24,8 @@ export const Toolbar = observer(() => {
 	const store = useStore();
 	const [objectives, setObjectives] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [thematicAreas, setThematicAreas] = useState([]);
+	// const [thematicAreas, setThematicAreas] = useState([]);
+	const initial = useRef(true);
 	const years = reverseRange(new Date().getFullYear(), 2018).map((y) => ({
 		label: y,
 		value: y,
@@ -33,6 +33,7 @@ export const Toolbar = observer(() => {
 
 	// change objectives when project changes
 	useEffect(() => {
+		if (!store) return;
 		setObjectives([]);
 		store.setSelectedObjective([]);
 
@@ -45,7 +46,30 @@ export const Toolbar = observer(() => {
 
 		const objectives = projects.flatMap((p) => p.objectives);
 		setObjectives(objectives);
+
+		if (initial.current) {
+			store.setSelectedObjective([
+				"HJbIZqv0VNl",
+				"luRWrgWwVtQ",
+				"ox87dTItQfr",
+			]);
+			initial.current = false;
+		} 
 	}, [store?.selectedProject]);
+
+	useEffect(() => {
+		if (!store || !store.selectedOrgUnitGroup) return;
+		const group = store.orgUnitGroups.find(
+			(g) => g.id === store.selectedOrgUnitGroup
+		);
+		console.log("group", group);
+		const project = store.projects.find((p) => p.name === group.name);
+		console.log("project", project);
+		if (!!project && !store.selectedProjectArray.includes(project.id))
+			store.setSelectedProject(
+				store.selectedProjectArray.concat(project.id)
+			);
+	}, [store?.selectedOrgUnitGroup]);
 
 	// change objectives when thematic area changes
 	// useEffect(() => {
@@ -68,12 +92,16 @@ export const Toolbar = observer(() => {
 
 	useEffect(() => {
 		setLoading(true);
+		if (!!store) {
 		Promise.all([store.loadOrgUnitRoots(), store.loadProjects()]).finally(
 			() => {
 				setLoading(false);
+				store.setSelectedOrgUnitGroup("zLC9Te91DUs")
+				store.setSelectedProject(["JsOhoxYXnXd"])
 			}
 		);
-	}, []);
+		}
+	}, [store]);
 
 	return (
 		<div className="topBar">
@@ -98,7 +126,7 @@ export const Toolbar = observer(() => {
 								options={store.orgUnitGroups}
 								filterOption={(input, option) => {
 									return (
-										option.name
+										option?.name
 											.toLowerCase()
 											.indexOf(input.toLowerCase()) >= 0
 									);
@@ -136,7 +164,7 @@ export const Toolbar = observer(() => {
 								filterOption={(input, option) => {
 									console.log(option);
 									return (
-										option.name
+										option?.name
 											.toLowerCase()
 											.indexOf(input.toLowerCase()) >= 0
 									);
@@ -160,7 +188,7 @@ export const Toolbar = observer(() => {
 								filterOption={(input, option) => {
 									console.log(option);
 									return (
-										option.name
+										option?.name
 											.toLowerCase()
 											.indexOf(input.toLowerCase()) >= 0
 									);
@@ -178,13 +206,14 @@ export const Toolbar = observer(() => {
 								fieldNames={{ label: "name", value: "id" }}
 								onChange={store.setSelectedObjective}
 								allowClear={true}
+								style={{ maxHeight: "110px" }}
 								mode="multiple"
 								value={store.selectedObjective}
 								options={objectives}
-								filterOption={(input, option) => {
+								filterOption={(input, option: any) => {
 									console.log(input, option);
 									return (
-										option.name
+										option?.name
 											.toLowerCase()
 											.indexOf(input.toLowerCase()) >= 0
 									);

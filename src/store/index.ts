@@ -1,6 +1,7 @@
 import React from "react";
-import { observable, runInAction, makeAutoObservable, toJS } from "mobx";
+import { makeAutoObservable } from "mobx";
 import { flatten, uniqBy } from "lodash";
+import { CompareArrowsOutlined } from "@material-ui/icons";
 
 const thematicAreaId = "uiuTNKXPniu";
 
@@ -16,7 +17,7 @@ export class Store {
 	thematicAreas?: any;
 	selectedThematicArea?: any;
 	selectedObjective?: any;
-	selectedYear?: any;
+	selectedYear?: any = [new Date().getFullYear()];
 	indicators?: any = [];
 
 	constructor(engine) {
@@ -60,7 +61,7 @@ export class Store {
 		this.selectedYear = year;
 	};
 
-	getOrgUnitName = (orgUnit) => {
+	getOrgUnit = (orgUnit) => {
 		let group = this.userOrgUnits.find((org) => org.id === orgUnit);
 		if (!group) {
 			if (!!this.selectedLevel && !!this.selectedProjectOrgs)
@@ -72,8 +73,12 @@ export class Store {
 				}
 			}
 		}
-		return group?.name;
+		return group;
 	};
+
+	getOrgUnitName = (orgUnit) => {
+		return this.getOrgUnit(orgUnit)?.name;
+	}
 
 	fetchIndicators = async () => {
 		const orgUnits = this.selectedOrgUnitArray;
@@ -146,7 +151,7 @@ export class Store {
 			if (indicatorIds.length == 0) return [];
 
 			for (const orgUnit of orgUnits) {
-				const orgUnitName = this.getOrgUnitName(orgUnit);
+				const orgUnitObj = this.getOrgUnit(orgUnit);
 				const url = `/api/29/analytics?dimension=rJ9cwmnKoP1:MAKKtv2MQbt;UwHkqmSsQ7i,dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&skipMeta=true&includeNumDen=true`;
 				const result = await this.engine.link.fetch(url);
 
@@ -300,7 +305,7 @@ export class Store {
 									name: indicator.name,
 									quartelyValues: qVals,
 									orgUnit,
-									orgUnitName,
+									orgUnitObj,
 									year,
 									target: toOneDecimal(totalTarget),
 									target2: systemTarget,
@@ -339,6 +344,7 @@ export class Store {
 				});
 				mappedIndicatorValues = Object.values(mapo);
 			}
+			console.log("actual map", mappedIndicatorValues)
 			return mappedIndicatorValues;
 		} catch (e) {
 			console.log("error", e);
@@ -484,6 +490,7 @@ export class Store {
 
 			this.userOrgUnits = orgs;
 			this.orgUnitGroups = orgUnitGroups;
+			
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -496,7 +503,7 @@ export class Store {
 				params: {
 					filter: `id:in:[${parent}]`,
 					paging: "false",
-					fields: "children[id,name,path,leaf]",
+					fields: "children[id,name,path,leaf],ancestors[id,name,level]",
 				},
 			},
 		};
@@ -591,6 +598,7 @@ export class Store {
 					objectives: p.indicatorGroups,
 				};
 			});
+			
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -619,12 +627,16 @@ export class Store {
 	get selectedProjectArray() {
 		return Array.isArray(this.selectedProject)
 			? this.selectedProject
-			: [this.selectedProject];
+			: !!this.selectedProject
+			? [this.selectedProject]
+			: [];
 	}
 	get selectedObjectiveArray() {
 		return Array.isArray(this.selectedObjective)
 			? this.selectedObjective
-			: [this.selectedObjective];
+			: !!this.selectedObjective
+			? [this.selectedObjective]
+			: [];
 	}
 
 	get selectedProjectOrgs() {
@@ -689,9 +701,10 @@ export class Store {
 	}
 
 	get fieldsSelected() {
+		console.log("state", {obj: this.selectedObjective, proj: this.selectedProject, orgA: this.selectedObjectiveArray})
 		return (
 			!!this.selectedObjective?.length &&
-			!!this.selectedYear?.length &&
+			!!this.selectedYearArray?.length &&
 			(!!this.selectedOrgUnitArray?.length || !!this.selectedLevel)
 		);
 	}
@@ -710,7 +723,7 @@ export class Store {
 	}
 }
 
-export const StoreContext = React.createContext();
+export const StoreContext = React.createContext<Store|null>(null);
 
 /* Hook to use store in any functional component */
 export const useStore = () => React.useContext(StoreContext);
