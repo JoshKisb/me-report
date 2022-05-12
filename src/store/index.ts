@@ -78,7 +78,7 @@ export class Store {
 
 	getOrgUnitName = (orgUnit) => {
 		return this.getOrgUnit(orgUnit)?.name;
-	}
+	};
 
 	fetchIndicators = async () => {
 		const orgUnits = this.selectedOrgUnitArray;
@@ -121,8 +121,11 @@ export class Store {
 						)
 						.flatMap((area) => area.indicators);
 
-					const filteredIndicators = group.indicators.filter((indicator) =>
-						possibleIndicators.some((pi) => pi.id == indicator.id)
+					const filteredIndicators = group.indicators.filter(
+						(indicator) =>
+							possibleIndicators.some(
+								(pi) => pi.id == indicator.id
+							)
 					);
 
 					return { ...group, indicators: filteredIndicators };
@@ -135,7 +138,9 @@ export class Store {
 
 			console.log("indicatorMaps", indicatorMaps);
 
-			const indicators = indicatorMaps.flatMap((group) => group.indicators);
+			const indicators = indicatorMaps.flatMap(
+				(group) => group.indicators
+			);
 			this.indicators = indicators;
 
 			const indicatorIds = indicatorGroups.flatMap((group) =>
@@ -157,37 +162,43 @@ export class Store {
 
 				console.log("Result", result);
 
-				const indexes = {};
+				const indexes: any = {};
 				result.headers.forEach((h: any, i) => {
 					indexes[h.name] = i;
 				});
+
+				type TotalNum = number | null | undefined;
 
 				indicatorMaps.forEach((indicatorGroup) => {
 					const indicatorMap = indicatorGroup.indicators;
 
 					const indicatorValues = Object.values(indicatorMap).flatMap(
-						(indicator) => {
+						(indicator: any) => {
 							return years.map((year) => {
 								let qVals = [];
 								let qTVals = [];
 								let systemTarget = 0;
 								let systemActual = 0;
-								let totalActual = 0;
-								let totalTarget = 0;
+								let totalActual: TotalNum = 0;
+								let totalTarget: TotalNum = 0;
 
 								const actualYrRow = result.rows.find(
 									(row) =>
-										row[indexes.dx] === indicator.actualId &&
+										row[indexes.dx] ===
+											indicator.actualId &&
 										row[indexes.pe] === `${year}` &&
-										row[indexes.rJ9cwmnKoP1] === "UwHkqmSsQ7i"
+										row[indexes.rJ9cwmnKoP1] ===
+											"UwHkqmSsQ7i"
 								);
 								systemActual = actualYrRow?.[indexes.value];
 
 								const targetYrRow = result.rows.find(
 									(row) =>
-										row[indexes.dx] === indicator.targetId &&
+										row[indexes.dx] ===
+											indicator.targetId &&
 										row[indexes.pe] === `${year}` &&
-										row[indexes.rJ9cwmnKoP1] === "MAKKtv2MQbt"
+										row[indexes.rJ9cwmnKoP1] ===
+											"MAKKtv2MQbt"
 								);
 								systemTarget = targetYrRow?.[indexes.value];
 
@@ -202,26 +213,33 @@ export class Store {
 									// Actual
 									const actualRow = result.rows.find(
 										(row) =>
-											row[indexes.dx] === indicator.actualId &&
+											row[indexes.dx] ===
+												indicator.actualId &&
 											row[indexes.pe] === pe &&
-											row[indexes.rJ9cwmnKoP1] === "UwHkqmSsQ7i"
+											row[indexes.rJ9cwmnKoP1] ===
+												"UwHkqmSsQ7i"
 									);
 
 									// Target
 									const targetRow = result.rows.find(
 										(row) =>
-											row[indexes.dx] === indicator.actualId &&
+											row[indexes.dx] ===
+												indicator.actualId &&
 											row[indexes.pe] === pe &&
-											row[indexes.rJ9cwmnKoP1] === "MAKKtv2MQbt"
+											row[indexes.rJ9cwmnKoP1] ===
+												"MAKKtv2MQbt"
 									);
 
-									const actualValue = actualRow?.[indexes.value];
+									const actualValue =
+										actualRow?.[indexes.value];
 									qVals[i] = !!actualValue
 										? parseFloat(actualValue)
 										: null;
 
 									const tagValue = targetRow?.[indexes.value];
-									qTVals[i] = !!tagValue ? parseFloat(tagValue) : null;
+									qTVals[i] = !!tagValue
+										? parseFloat(tagValue)
+										: null;
 
 									if (indicator.type == "ay1aN8SGK7J") {
 										// Latest number
@@ -231,15 +249,21 @@ export class Store {
 										if (!!tagValue) {
 											totalTarget = qTVals[i];
 										}
-									} else if (indicator.type == "Vejcb1Wvjrc") {
+									} else if (
+										indicator.type == "Vejcb1Wvjrc"
+									) {
 										// Cumulative percentage"
 
 										if (!!tagValue) {
 											const n = parseFloat(
-												targetRow?.[indexes.numerator] || 0
+												targetRow?.[
+													indexes.numerator
+												] || 0
 											);
 											const d = parseFloat(
-												targetRow?.[indexes.denominator] || 0
+												targetRow?.[
+													indexes.denominator
+												] || 0
 											);
 											totalDT += d;
 											totalTarget = qTVals[i];
@@ -247,10 +271,14 @@ export class Store {
 
 										if (!!actualValue) {
 											const n = parseFloat(
-												actualRow?.[indexes.numerator] || 0
+												actualRow?.[
+													indexes.numerator
+												] || 0
 											);
 											const d = parseFloat(
-												actualRow?.[indexes.denominator] || 0
+												actualRow?.[
+													indexes.denominator
+												] || 0
 											);
 											totalDA += d;
 											totalActual += n;
@@ -268,29 +296,36 @@ export class Store {
 								}
 
 								// set total to null instead of 0
-								if (qTVals.every((x) => x == null)) totalTarget = null;
-								if (qVals.every((x) => x == null)) totalActual = null;
+								if (qTVals.every((x) => x == null))
+									totalTarget = null;
+								if (qVals.every((x) => x == null))
+									totalActual = null;
 
-								let percentage = null;
+								let percentage: number | null = null;
 
-								if (indicator.type == "Vejcb1Wvjrc") {
-									percentage = totalActual;
-								} else if (
+								if (
 									totalActual !== null &&
 									totalTarget !== null
 								) {
-									percentage =
-										totalActual === totalTarget
-											? 100
-											: (totalActual * 100) / (totalTarget || 1);
+									if (indicator.type == "Vejcb1Wvjrc") {
+										percentage = totalActual ?? null;
+									} else {
+										percentage =
+											totalActual === totalTarget
+												? 100
+												: (totalActual * 100) /
+												  (totalTarget || 1);
+									}
 								}
-
-								const color = indicator.colors?.find((c, index) => {
-									return (
-										percentage < parseFloat(c.endValue) ||
-										index == indicator.colors.length - 1
-									);
-								});
+								const color = indicator.colors?.find(
+									(c, index) => {
+										return (
+											percentage <
+												parseFloat(c.endValue) ||
+											index == indicator.colors.length - 1
+										);
+									}
+								);
 
 								const toOneDecimal = (value) =>
 									!!value && value % 1 !== 0
@@ -344,7 +379,7 @@ export class Store {
 				});
 				mappedIndicatorValues = Object.values(mapo);
 			}
-			console.log("actual map", mappedIndicatorValues)
+			console.log("actual map", mappedIndicatorValues);
 			return mappedIndicatorValues;
 		} catch (e) {
 			console.log("error", e);
@@ -375,7 +410,13 @@ export class Store {
 		indicatorGroups.forEach((group) => {
 			let indicatorMap = {};
 
-			const addIndicatorToMap = (key, name, colors, thematicArea, type) => {
+			const addIndicatorToMap = (
+				key,
+				name,
+				colors,
+				thematicArea,
+				type
+			) => {
 				if (!indicatorMap.hasOwnProperty(key)) {
 					indicatorMap[key] = {
 						id: key,
@@ -490,7 +531,6 @@ export class Store {
 
 			this.userOrgUnits = orgs;
 			this.orgUnitGroups = orgUnitGroups;
-			
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -503,21 +543,26 @@ export class Store {
 				params: {
 					filter: `id:in:[${parent}]`,
 					paging: "false",
-					fields: "children[id,name,path,leaf],ancestors[id,name,level]",
+					fields:
+						"children[id,name,path,leaf],ancestors[id,name,level]",
 				},
 			},
 		};
 		try {
 			const data = await this.engine.query(query);
-			const found = data.organisations.organisationUnits.map((unit: any) => {
-				return unit.children
-					.sort((a, b) =>
-						a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-					)
-					.map((child: any) => {
-						return { ...child, pId: parent };
-					});
-			});
+			const found = data.organisations.organisationUnits.map(
+				(unit: any) => {
+					return unit.children
+						.sort((a, b) =>
+							a.name
+								.toLowerCase()
+								.localeCompare(b.name.toLowerCase())
+						)
+						.map((child: any) => {
+							return { ...child, pId: parent };
+						});
+				}
+			);
 			const all = flatten(found);
 			const orgs = [...this.userOrgUnits, ...all];
 			this.userOrgUnits = uniqBy(orgs, "id");
@@ -583,12 +628,17 @@ export class Store {
 			const data = await this.engine.query(query);
 			// console.log("projects:", data);
 
-			this.thematicAreas = data.thematicAreas.indicatorGroups.map((area) => {
-				return {
-					...area,
-					name: area.name.replace(/^\s?Thematic Area\s?-?\s?/i, ""),
-				};
-			});
+			this.thematicAreas = data.thematicAreas.indicatorGroups.map(
+				(area) => {
+					return {
+						...area,
+						name: area.name.replace(
+							/^\s?Thematic Area\s?-?\s?/i,
+							""
+						),
+					};
+				}
+			);
 
 			const indicatorGroupSets = data.projects.indicatorGroupSets;
 			this.projects = indicatorGroupSets.map((p) => {
@@ -598,7 +648,6 @@ export class Store {
 					objectives: p.indicatorGroups,
 				};
 			});
-			
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -701,7 +750,11 @@ export class Store {
 	}
 
 	get fieldsSelected() {
-		console.log("state", {obj: this.selectedObjective, proj: this.selectedProject, orgA: this.selectedObjectiveArray})
+		console.log("state", {
+			obj: this.selectedObjective,
+			proj: this.selectedProject,
+			orgA: this.selectedObjectiveArray,
+		});
 		return (
 			!!this.selectedObjective?.length &&
 			!!this.selectedYearArray?.length &&
@@ -713,7 +766,8 @@ export class Store {
 		const hasManyOrgs = this.selectedOrgUnitArray.length > 1;
 		const hasManyYrs = this.selectedYearArray.length > 1;
 		const hasManyObjectives = this.selectedObjectiveArray.length > 1;
-		const hasSelectedThematicArea = this.selectedThematicAreaArray.length > 0;
+		const hasSelectedThematicArea =
+			this.selectedThematicAreaArray.length > 0;
 		return (
 			//hasManyOrgs ||
 			//hasManyYrs ||
@@ -723,7 +777,7 @@ export class Store {
 	}
 }
 
-export const StoreContext = React.createContext<Store|null>(null);
+export const StoreContext = React.createContext<Store | null>(null);
 
 /* Hook to use store in any functional component */
 export const useStore = () => React.useContext(StoreContext);

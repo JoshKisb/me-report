@@ -10,10 +10,11 @@ const styles: any = {
 		backgroundColor: "#dedede",
 		display: "flex",
 		flexDirection: "column",
-		padding: "5px",
+		padding: "4px",
 	},
 	label: {
-		marginBottom: "5px",
+		marginBottom: "0px",
+		padding: "4px"
 	},
 };
 
@@ -107,10 +108,10 @@ export const Toolbar = observer(() => {
 		<div className="topBar">
 			<Spin spinning={loading}>
 				<Row gutter={{ xs: 8, sm: 16 }}>
-					<Col className="gutter-row" xs={24} md={7}>
+					<Col className="gutter-row" xs={24} md={5}>
 						<div style={styles.selectBox}>
 							<p style={styles.label}>
-								Selected Organisation Unit Level
+								Selected OrgUnit Group
 							</p>
 
 							<Select
@@ -133,7 +134,13 @@ export const Toolbar = observer(() => {
 								}}
 							/>
 
-							<Select
+							
+						</div>
+					</Col>
+					<Col className="gutter-row" xs={24} md={4}>
+						<div style={styles.selectBox}>
+						<p style={styles.label}>Selected OrgUnit Level</p>
+						<Select
 								placeholder="Select Organisation Unit Level"
 								value={store.selectedLevel}
 								onChange={store.setSelectedLevel}
@@ -148,7 +155,7 @@ export const Toolbar = observer(() => {
 							</Select>
 						</div>
 					</Col>
-					<Col className="gutter-row" xs={24} md={4}>
+					<Col className="gutter-row" xs={24} md={3}>
 						<div style={styles.selectBox}>
 							<p style={styles.label}>Selected Project</p>
 							<Select
@@ -172,7 +179,7 @@ export const Toolbar = observer(() => {
 							/>
 						</div>
 					</Col>
-					<Col className="gutter-row" xs={24} md={5}>
+					<Col className="gutter-row" xs={24} md={4}>
 						<div style={styles.selectBox}>
 							<p style={styles.label}>Selected Thematic Area</p>
 							<Select
