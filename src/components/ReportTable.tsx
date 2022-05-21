@@ -31,7 +31,7 @@ export const ReportTable = observer(() => {
 	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
-		console.log("checking state", store?.fieldsSelected)
+		console.log("checking state", store?.fieldsSelected);
 		if (!store || !store.fieldsSelected) return;
 		setLoading(true);
 
@@ -89,7 +89,10 @@ export const ReportTable = observer(() => {
 				})
 				.filter((area) => area.values.length > 0);
 		}
-		console.log("filt", filtered.filter((x: any) => x.values.length > 0))
+		console.log(
+			"filt",
+			filtered.filter((x: any) => x.values.length > 0)
+		);
 		setFilteredIndicators(filtered);
 	};
 
@@ -123,11 +126,14 @@ export const ReportTable = observer(() => {
 					"Q3",
 					"Q4",
 				],
-				...indicators.flatMap((area) =>
+				...indicators.flatMap((area: any) =>
 					area.values.map((indicator) => [
 						indicator.orgUnit,
 						indicator.orgUnitObj.name,
-						indicator.orgUnitObj.ancestors?.map(a => a.name).join("/"),
+						indicator.orgUnitObj.ancestors
+							?.map((a) => a.name)
+							.concat(indicator.orgUnitObj.name)
+							.join("/"),
 						indicator.year,
 						area.objective,
 						area.objectiveId,
@@ -207,7 +213,10 @@ export const ReportTable = observer(() => {
 			return (
 				<>
 					<tr>
-						<td className="thematic-area" rowspan={area.values.length}>
+						<td
+							className="thematic-area"
+							rowspan={area.values.length}
+						>
 							<div>
 								{store.selectedThematicAreaArray.length > 0 && (
 									<p>{area.thematicArea}</p>
@@ -274,7 +283,10 @@ export const ReportTable = observer(() => {
 
 					<div className="d-flex mb-3">
 						<div className="filterBtn">
-							<Button icon={<FilterOutlined />} onClick={showDrawer} />
+							<Button
+								icon={<FilterOutlined />}
+								onClick={showDrawer}
+							/>
 						</div>
 						<div className="filterList">
 							{getFilterIndicators().map((i) => (

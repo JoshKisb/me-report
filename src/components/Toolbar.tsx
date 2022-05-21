@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Row, Col, Select, Spin } from "antd";
 import { observer } from "mobx-react-lite";
 import { Store, useStore } from "../store";
+import { OrgUnitTree } from "./OrgUnitTree";
 
 const { Option } = Select;
 
@@ -14,7 +15,7 @@ const styles: any = {
 	},
 	label: {
 		marginBottom: "0px",
-		padding: "4px"
+		padding: "4px",
 	},
 };
 
@@ -55,7 +56,7 @@ export const Toolbar = observer(() => {
 				"ox87dTItQfr",
 			]);
 			initial.current = false;
-		} 
+		}
 	}, [store?.selectedProject]);
 
 	useEffect(() => {
@@ -94,13 +95,14 @@ export const Toolbar = observer(() => {
 	useEffect(() => {
 		setLoading(true);
 		if (!!store) {
-		Promise.all([store.loadOrgUnitRoots(), store.loadProjects()]).finally(
-			() => {
+			Promise.all([
+				store.loadOrgUnitRoots(),
+				store.loadProjects(),
+			]).finally(() => {
 				setLoading(false);
-				store.setSelectedOrgUnitGroup("zLC9Te91DUs")
-				store.setSelectedProject(["JsOhoxYXnXd"])
-			}
-		);
+				store.setSelectedOrgUnitGroup("zLC9Te91DUs");
+				store.setSelectedProject(["JsOhoxYXnXd"]);
+			});
 		}
 	}, [store]);
 
@@ -108,11 +110,9 @@ export const Toolbar = observer(() => {
 		<div className="topBar">
 			<Spin spinning={loading}>
 				<Row gutter={{ xs: 8, sm: 16 }}>
-					<Col className="gutter-row" xs={24} md={5}>
+					<Col className="gutter-row" xs={24} md={4}>
 						<div style={styles.selectBox}>
-							<p style={styles.label}>
-								Selected OrgUnit Group
-							</p>
+							<p style={styles.label}>Selected OrgUnit Group</p>
 
 							<Select
 								showSearch
@@ -122,7 +122,7 @@ export const Toolbar = observer(() => {
 								onChange={store.setSelectedOrgUnitGroup}
 								value={store.selectedOrgUnitGroup}
 								allowClear={true}
-								disabled={!!store.selectedLevel}
+								disabled={!!store?.selectedLevel || !!store?.selectedOrgUnit}
 								// mode="multiple"
 								options={store.orgUnitGroups}
 								filterOption={(input, option) => {
@@ -133,14 +133,13 @@ export const Toolbar = observer(() => {
 									);
 								}}
 							/>
-
-							
 						</div>
 					</Col>
-					<Col className="gutter-row" xs={24} md={4}>
+					<Col className="gutter-row" xs={24} md={5}>
 						<div style={styles.selectBox}>
-						<p style={styles.label}>Selected OrgUnit Level</p>
-						<Select
+							<p style={styles.label}>Selected OrgUnit</p>
+							<OrgUnitTree />
+							{/* <Select
 								placeholder="Select Organisation Unit Level"
 								value={store.selectedLevel}
 								onChange={store.setSelectedLevel}
@@ -153,6 +152,7 @@ export const Toolbar = observer(() => {
 								<Option value="4">Level 4</Option>
 								<Option value="5">Level 5</Option>
 							</Select>
+						 */}
 						</div>
 					</Col>
 					<Col className="gutter-row" xs={24} md={3}>
