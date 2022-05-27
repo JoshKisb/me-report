@@ -100,7 +100,8 @@ export const Toolbar = observer(() => {
 				store.loadProjects(),
 			]).finally(() => {
 				setLoading(false);
-				store.setSelectedOrgUnitGroup("zLC9Te91DUs");
+				store.setSelectedOrgUnit(["UqgSgdDNxpA"]);
+				// store.setSelectedOrgUnitGroup("zLC9Te91DUs");
 				store.setSelectedProject(["JsOhoxYXnXd"]);
 			});
 		}
