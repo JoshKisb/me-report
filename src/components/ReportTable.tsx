@@ -187,6 +187,7 @@ export const ReportTable = observer(() => {
 	};
 
 	const renderIndicatorTableCells = (indicator) => {
+		console.log("indi", indicator);
 		return (
 			<>
 				<td>{indicator.year}</td>
@@ -225,7 +226,7 @@ export const ReportTable = observer(() => {
 						</td>
 						{renderIndicatorTableCells(area.values[0])}
 					</tr>
-					{area.values.slice(1).map((indicator) => (
+					{area.values.slice(1).filter(i => !!i).map((indicator) => (
 						<tr key={indicator.id}>
 							{renderIndicatorTableCells(indicator)}
 						</tr>
@@ -235,7 +236,7 @@ export const ReportTable = observer(() => {
 		} else {
 			return (
 				<>
-					{area.values.map((indicator) => (
+					{area.values.filter(i => !!i).map((indicator) => (
 						<tr key={indicator.id}>
 							{renderIndicatorTableCells(indicator)}
 						</tr>
@@ -354,7 +355,7 @@ export const ReportTable = observer(() => {
 							</tr>
 						</thead>
 						<tbody>
-							{filteredIndicators.map((area) => (
+							{filteredIndicators.filter(a => a.values.length > 0).map((area) => (
 								<React.Fragment key={area.key}>
 									{renderThematicRow(area)}
 								</React.Fragment>

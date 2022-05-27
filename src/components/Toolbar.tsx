@@ -106,6 +106,7 @@ export const Toolbar = observer(() => {
 		}
 	}, [store]);
 
+	if (!store) return;
 	return (
 		<div className="topBar">
 			<Spin spinning={loading}>
