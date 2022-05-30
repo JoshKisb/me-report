@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { observer } from "mobx-react-lite";
-import { useStore } from "../store";
+import { Store, useStore } from "../store";
 import { CSVLink } from "react-csv";
 import { Button, Drawer, Checkbox, Input } from "antd";
 import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
@@ -15,10 +15,11 @@ const styles = {
 	},
 };
 
-const { Search } = Input;
+// const { Search } = Input;
+const NA = "-";
 
 export const ReportTable = observer(() => {
-	const store = useStore();
+	const store = useStore() as Store;
 	const [loading, setLoading] = useState(false);
 	const [loadingCSV, setLoadingCSV] = useState(false);
 	const [indicators, setIndicators] = useState([]);
@@ -59,6 +60,7 @@ export const ReportTable = observer(() => {
 	}, [filters, indicators]);
 
 	useEffect(() => {
+		if (!store) return;
 		let idx = store.indicators;
 		const _search = search.toLowerCase();
 
@@ -74,25 +76,24 @@ export const ReportTable = observer(() => {
 	}, [indicators, search]);
 
 	const filterIndicators = () => {
-		let filtered = indicators;
+		let filtered: any[] = indicators;
 
 		if (filters.length > 0) {
-			filtered = indicators
-				.map((area) => {
-					const vals = area.values.filter((indx) =>
-						filters.includes(indx.id)
-					);
-					return {
-						...area,
-						values: vals,
-					};
-				})
-				.filter((area) => area.values.length > 0);
+			filtered = indicators.map((area) => {
+				const vals = area.values.filter((indx) =>
+					filters.includes(indx.id)
+				);
+				return {
+					...area,
+					values: vals,
+				};
+			});
 		}
-		console.log(
-			"filt",
-			filtered.filter((x: any) => x.values.length > 0)
-		);
+		filtered = filtered
+			.filter((area) => area.values.length > 0)
+			.map(ind => ({...ind, values: ind.values.sort((a, b) => a.code.localeCompare(b.code))}));
+		
+		console.log("filt", filtered);
 		setFilteredIndicators(filtered);
 	};
 
@@ -171,12 +172,12 @@ export const ReportTable = observer(() => {
 	};
 
 	const onSearch = (e) => {
-		console.log("Search", e);
+		// console.log("Search", e);
 		setSearch(e.target.value);
 	};
 
 	const cellStyle = (indicator) => {
-		let style = {};
+		let style: any = {};
 		if (indicator.percentage != null) {
 			style.backgroundColor = indicator.color;
 
@@ -187,24 +188,24 @@ export const ReportTable = observer(() => {
 	};
 
 	const renderIndicatorTableCells = (indicator) => {
-		console.log("indi", indicator);
+		// console.log("indi", indicator);
 		return (
 			<>
 				<td>{indicator.year}</td>
 				<td>{indicator.orgUnitObj.name}</td>
 				<td>{indicator.name}</td>
 				<td>0</td>
-				<td>{indicator.target ?? "N/A"}</td>
-				<td>{indicator.actual ?? "N/A"}</td>
+				<td>{indicator.target ?? NA}</td>
+				<td>{indicator.actual ?? NA}</td>
 				<td style={cellStyle(indicator)}>
 					{indicator.percentage != null
 						? `${indicator.percentage}%`
-						: "N/A"}
+						: NA}
 				</td>
-				<td>{indicator.quartelyValues?.[0] ?? "N/A"}</td>
-				<td>{indicator.quartelyValues?.[1] ?? "N/A"}</td>
-				<td>{indicator.quartelyValues?.[2] ?? "N/A"}</td>
-				<td>{indicator.quartelyValues?.[3] ?? "N/A"}</td>
+				<td>{indicator.quartelyValues?.[0] ?? NA}</td>
+				<td>{indicator.quartelyValues?.[1] ?? NA}</td>
+				<td>{indicator.quartelyValues?.[2] ?? NA}</td>
+				<td>{indicator.quartelyValues?.[3] ?? NA}</td>
 			</>
 		);
 	};
@@ -216,7 +217,7 @@ export const ReportTable = observer(() => {
 					<tr>
 						<td
 							className="thematic-area"
-							rowspan={area.values.length}
+							rowSpan={area.values.length}
 						>
 							<div>
 								{store.selectedThematicAreaArray.length > 0 && (
@@ -226,21 +227,26 @@ export const ReportTable = observer(() => {
 						</td>
 						{renderIndicatorTableCells(area.values[0])}
 					</tr>
-					{area.values.slice(1).filter(i => !!i).map((indicator) => (
-						<tr key={indicator.id}>
-							{renderIndicatorTableCells(indicator)}
-						</tr>
-					))}
+					{area.values
+						.slice(1)
+						.filter((i) => !!i)
+						.map((indicator) => (
+							<tr key={indicator.id}>
+								{renderIndicatorTableCells(indicator)}
+							</tr>
+						))}
 				</>
 			);
 		} else {
 			return (
 				<>
-					{area.values.filter(i => !!i).map((indicator) => (
-						<tr key={indicator.id}>
-							{renderIndicatorTableCells(indicator)}
-						</tr>
-					))}
+					{area.values
+						.filter((i) => !!i)
+						.map((indicator) => (
+							<tr key={indicator.id}>
+								{renderIndicatorTableCells(indicator)}
+							</tr>
+						))}
 				</>
 			);
 		}
@@ -333,7 +339,7 @@ export const ReportTable = observer(() => {
 					</Drawer>
 
 					<table className="report-table table table-bordered">
-						<thead class="table-dark">
+						<thead className="table-dark">
 							<tr>
 								{store.hasThematicAreas && (
 									<th rowspan="2">Thematic Area</th>
@@ -355,11 +361,13 @@ export const ReportTable = observer(() => {
 							</tr>
 						</thead>
 						<tbody>
-							{filteredIndicators.filter(a => a.values.length > 0).map((area) => (
-								<React.Fragment key={area.key}>
-									{renderThematicRow(area)}
-								</React.Fragment>
-							))}
+							{filteredIndicators
+								.filter((a) => a.values.length > 0)
+								.map((area) => (
+									<React.Fragment key={area.key}>
+										{renderThematicRow(area)}
+									</React.Fragment>
+								))}
 						</tbody>
 					</table>
 				</div>

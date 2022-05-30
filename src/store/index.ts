@@ -1,13 +1,13 @@
 import React from "react";
 import { makeAutoObservable } from "mobx";
 import { flatten, uniqBy } from "lodash";
-import { CompareArrowsOutlined } from "@material-ui/icons";
 
 const thematicAreaId = "uiuTNKXPniu";
 
 export class Store {
 	engine: any;
 	userOrgUnits: any = [];
+	userInfo: any;
 	orgUnitGroups?: any = [];
 	selectedLevel?: any;
 	selectedOrgUnit?: any;
@@ -84,6 +84,8 @@ export class Store {
 		const orgUnits = this.selectedOrgUnitArray;
 		const years = this.selectedYearArray;
 		const objectives = this.selectedObjectiveArray;
+
+		console.log("objectives", objectives);
 
 		const query = {
 			indicatorGroups: {
@@ -338,6 +340,7 @@ export class Store {
 								return {
 									id: indicator.id,
 									name: indicator.name,
+									code: indicator.code,
 									quartelyValues: qVals,
 									orgUnit,
 									orgUnitObj,
@@ -402,7 +405,7 @@ export class Store {
 		]
 	*/
 	_createIndicatorMaps = (indicatorGroups: any) => {
-		let indicatorMaps = [];
+		let indicatorMaps: any[] = [];
 
 		const tagRe = /\s*TAG_(\w+)/i; //\s*-\s*(.*)/i;
 		const actRe = /\s*ACT_(\w+)/i; //\s*-\s*(.*)/i;
@@ -415,7 +418,8 @@ export class Store {
 				name,
 				colors,
 				thematicArea,
-				type
+				type,
+				code
 			) => {
 				if (!indicatorMap.hasOwnProperty(key)) {
 					indicatorMap[key] = {
@@ -424,6 +428,7 @@ export class Store {
 						colors: colors,
 						thematicArea,
 						type,
+						code,
 					};
 				}
 			};
@@ -456,7 +461,8 @@ export class Store {
 						indicator.description,
 						colors,
 						thematicArea,
-						indicator.indicatorType.id
+						indicator.indicatorType.id,
+						indicator.code
 					);
 					indicatorMap[actMatch[1]].actualId = indicator.id;
 				} else {
@@ -465,7 +471,8 @@ export class Store {
 						indicator.description,
 						colors,
 						thematicArea,
-						indicator.indicatorType.id
+						indicator.indicatorType.id,
+						indicator.code
 					);
 					indicatorMap[indicator.code].actualId = indicator.id;
 				}
@@ -501,6 +508,25 @@ export class Store {
 			});
 		});
 		return Object.values(indicatorMap);
+	};
+
+	loadUserInfo = async () => {
+		const query = {
+			me: {
+				resource: "me.json",
+				params: {
+					fields: "userGroups[id]",
+				},
+			},
+		};
+
+		try {
+			const data = await this.engine.query(query);
+			console.log("loadUserInfo:", data);
+			this.userInfo = data.me;
+		} catch (e) {
+			console.log("error", e);
+		}
 	};
 
 	loadOrgUnitRoots = async () => {
@@ -544,7 +570,7 @@ export class Store {
 					filter: `id:in:[${parent}]`,
 					paging: "false",
 					fields:
-						"children[id,name,path,leaf],ancestors[id,name,level]",
+						"children[id,name,path,leaf, level],ancestors[id,name,level]",
 				},
 			},
 		};
@@ -559,7 +585,11 @@ export class Store {
 								.localeCompare(b.name.toLowerCase())
 						)
 						.map((child: any) => {
-							return { ...child, pId: parent };
+							let leaf =
+								child.level == 2 && this.isProjectManager
+									? true
+									: child.leaf;
+							return { ...child, pId: parent, leaf };
 						});
 				}
 			);
@@ -653,6 +683,10 @@ export class Store {
 		}
 	};
 
+	get isProjectManager() {
+		return this.userInfo?.userGroups.some((g) => g.id === "dyVIA8lyC04");
+	}
+
 	get organisationUnits() {
 		const units = this.userOrgUnits.map((unit: any) => {
 			return {
@@ -681,6 +715,13 @@ export class Store {
 			: [];
 	}
 	get selectedObjectiveArray() {
+		if (this.isProjectManager) {
+			const projects = this.selectedProjectArray.map((p) =>
+				this.projects.find((pr) => pr.id == p)
+			);
+			return projects.flatMap((p) => p.objectives).map((o) => o.id);
+		}
+
 		return Array.isArray(this.selectedObjective)
 			? this.selectedObjective
 			: !!this.selectedObjective
@@ -756,7 +797,7 @@ export class Store {
 			orgA: this.selectedObjectiveArray,
 		});
 		return (
-			!!this.selectedObjective?.length &&
+			!!this.selectedObjectiveArray?.length &&
 			!!this.selectedYearArray?.length &&
 			(!!this.selectedOrgUnitArray?.length || !!this.selectedLevel)
 		);

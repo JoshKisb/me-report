@@ -97,6 +97,7 @@ export const Toolbar = observer(() => {
 		if (!!store) {
 			Promise.all([
 				store.loadOrgUnitRoots(),
+				store.loadUserInfo(),
 				store.loadProjects(),
 			]).finally(() => {
 				setLoading(false);
@@ -108,141 +109,209 @@ export const Toolbar = observer(() => {
 	}, [store]);
 
 	if (!store) return;
+
+	const OrgUnitGroupSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected OrgUnit Group</p>
+
+			<Select
+				showSearch
+				placeholder="Select Organisation Unit Group"
+				optionFilterProp="label"
+				fieldNames={{
+					label: "name",
+					value: "id",
+				}}
+				onChange={store.setSelectedOrgUnitGroup}
+				value={store.selectedOrgUnitGroup}
+				allowClear={true}
+				disabled={!!store?.selectedLevel || !!store?.selectedOrgUnit}
+				// mode="multiple"
+				options={store.orgUnitGroups}
+				filterOption={(input, option) => {
+					return (
+						option?.name
+							.toLowerCase()
+							.indexOf(input.toLowerCase()) >= 0
+					);
+				}}
+			/>
+		</div>
+	);
+
+	const projectSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected Project</p>
+			<Select
+				showSearch
+				placeholder="Select Project"
+				optionFilterProp="label"
+				fieldNames={{
+					label: "name",
+					value: "id",
+				}}
+				onChange={store.setSelectedProject}
+				value={store.selectedProject}
+				allowClear={true}
+				mode="multiple"
+				options={store.projects}
+				filterOption={(input, option) => {
+					console.log(option);
+					return (
+						option?.name
+							.toLowerCase()
+							.indexOf(input.toLowerCase()) >= 0
+					);
+				}}
+			/>
+		</div>
+	);
+
+	const thematicAreaSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected Thematic Area</p>
+			<Select
+				showSearch
+				placeholder="Select Thematic Area"
+				optionFilterProp="label"
+				fieldNames={{
+					label: "name",
+					value: "id",
+				}}
+				onChange={store.setSelectedThematicArea}
+				allowClear={true}
+				mode="multiple"
+				value={store.selectedThematicArea}
+				options={store.thematicAreas}
+				filterOption={(input, option) => {
+					console.log(option);
+					return (
+						option?.name
+							.toLowerCase()
+							.indexOf(input.toLowerCase()) >= 0
+					);
+				}}
+			/>
+		</div>
+	);
+
+	const objectiveSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected Objective</p>
+			<Select
+				showSearch
+				placeholder="Select Objective"
+				optionFilterProp="label"
+				fieldNames={{
+					label: "name",
+					value: "id",
+				}}
+				onChange={store.setSelectedObjective}
+				allowClear={true}
+				style={{ maxHeight: "110px" }}
+				mode="multiple"
+				value={store.selectedObjective}
+				options={objectives}
+				filterOption={(input, option: any) => {
+					console.log(input, option);
+					return (
+						option?.name
+							.toLowerCase()
+							.indexOf(input.toLowerCase()) >= 0
+					);
+				}}
+			/>
+		</div>
+	);
+
+	const yearSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected Year</p>
+			<Select
+				placeholder="Select Year"
+				onChange={store.setSelectedYear}
+				allowClear={true}
+				options={years}
+				mode="multiple"
+				value={store.selectedYear}
+			/>
+		</div>
+	);
+
+	const orgUnitSelect = (
+		<div style={styles.selectBox}>
+			<p style={styles.label}>Selected OrgUnit</p>
+			<OrgUnitTree />
+		</div>
+	);
+	{
+		/* <Select
+			placeholder="Select Organisation Unit Level"
+			value={store.selectedLevel}
+			onChange={store.setSelectedLevel}
+			allowClear={true}
+			disabled={!!store.selectedOrgUnitGroup}
+		>
+			<Option value="1">Level 1</Option>
+			<Option value="2">Level 2</Option>
+			<Option value="3">Level 3</Option>
+			<Option value="4">Level 4</Option>
+			<Option value="5">Level 5</Option>
+		</Select>
+		*/
+	}
 	return (
 		<div className="topBar">
 			<Spin spinning={loading}>
-				<Row gutter={{ xs: 8, sm: 16 }}>
-					<Col className="gutter-row" xs={24} md={4}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected OrgUnit Group</p>
-
-							<Select
-								showSearch
-								placeholder="Select Organisation Unit Group"
-								optionFilterProp="label"
-								fieldNames={{ label: "name", value: "id" }}
-								onChange={store.setSelectedOrgUnitGroup}
-								value={store.selectedOrgUnitGroup}
-								allowClear={true}
-								disabled={!!store?.selectedLevel || !!store?.selectedOrgUnit}
-								// mode="multiple"
-								options={store.orgUnitGroups}
-								filterOption={(input, option) => {
-									return (
-										option?.name
-											.toLowerCase()
-											.indexOf(input.toLowerCase()) >= 0
-									);
-								}}
-							/>
-						</div>
-					</Col>
-					<Col className="gutter-row" xs={24} md={5}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected OrgUnit</p>
-							<OrgUnitTree />
-							{/* <Select
-								placeholder="Select Organisation Unit Level"
-								value={store.selectedLevel}
-								onChange={store.setSelectedLevel}
-								allowClear={true}
-								disabled={!!store.selectedOrgUnitGroup}
-							>
-								<Option value="1">Level 1</Option>
-								<Option value="2">Level 2</Option>
-								<Option value="3">Level 3</Option>
-								<Option value="4">Level 4</Option>
-								<Option value="5">Level 5</Option>
-							</Select>
-						 */}
-						</div>
-					</Col>
-					<Col className="gutter-row" xs={24} md={3}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected Project</p>
-							<Select
-								showSearch
-								placeholder="Select Project"
-								optionFilterProp="label"
-								fieldNames={{ label: "name", value: "id" }}
-								onChange={store.setSelectedProject}
-								value={store.selectedProject}
-								allowClear={true}
-								mode="multiple"
-								options={store.projects}
-								filterOption={(input, option) => {
-									console.log(option);
-									return (
-										option?.name
-											.toLowerCase()
-											.indexOf(input.toLowerCase()) >= 0
-									);
-								}}
-							/>
-						</div>
-					</Col>
-					<Col className="gutter-row" xs={24} md={4}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected Thematic Area</p>
-							<Select
-								showSearch
-								placeholder="Select Thematic Area"
-								optionFilterProp="label"
-								fieldNames={{ label: "name", value: "id" }}
-								onChange={store.setSelectedThematicArea}
-								allowClear={true}
-								mode="multiple"
-								value={store.selectedThematicArea}
-								options={store.thematicAreas}
-								filterOption={(input, option) => {
-									console.log(option);
-									return (
-										option?.name
-											.toLowerCase()
-											.indexOf(input.toLowerCase()) >= 0
-									);
-								}}
-							/>
-						</div>
-					</Col>
-					<Col className="gutter-row" xs={24} md={5} lg={5}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected Objective</p>
-							<Select
-								showSearch
-								placeholder="Select Objective"
-								optionFilterProp="label"
-								fieldNames={{ label: "name", value: "id" }}
-								onChange={store.setSelectedObjective}
-								allowClear={true}
-								style={{ maxHeight: "110px" }}
-								mode="multiple"
-								value={store.selectedObjective}
-								options={objectives}
-								filterOption={(input, option: any) => {
-									console.log(input, option);
-									return (
-										option?.name
-											.toLowerCase()
-											.indexOf(input.toLowerCase()) >= 0
-									);
-								}}
-							/>
-						</div>
-					</Col>
-					<Col className="gutter-row" xs={24} md={3} lg={3}>
-						<div style={styles.selectBox}>
-							<p style={styles.label}>Selected Year</p>
-							<Select
-								placeholder="Select Year"
-								onChange={store.setSelectedYear}
-								allowClear={true}
-								options={years}
-								mode="multiple"
-								value={store.selectedYear}
-							/>
-						</div>
-					</Col>
+				<Row gutter={{ xs: 8, sm: 16 }} style={{ minHeight: "70px" }}>
+					{!loading && (
+						<>
+							{!store.isProjectManager ? (
+								<>
+									<Col className="gutter-row" xs={24} md={4}>
+										{OrgUnitGroupSelect}
+									</Col>
+									<Col className="gutter-row" xs={24} md={5}>
+										{orgUnitSelect}
+									</Col>
+									<Col className="gutter-row" xs={24} md={3}>
+										{projectSelect}
+									</Col>
+									<Col className="gutter-row" xs={24} md={4}>
+										{thematicAreaSelect}
+									</Col>
+									<Col
+										className="gutter-row"
+										xs={24}
+										md={5}
+										lg={5}
+									>
+										{objectiveSelect}
+									</Col>
+									<Col
+										className="gutter-row"
+										xs={24}
+										md={3}
+										lg={3}
+									>
+										{yearSelect}
+									</Col>
+								</>
+							) : (
+								<>
+									<Col className="gutter-row" xs={24} md={8}>
+										{orgUnitSelect}
+									</Col>
+									<Col className="gutter-row" xs={24} md={8}>
+										{projectSelect}
+									</Col>
+									<Col className="gutter-row" xs={24} md={8}>
+										{yearSelect}
+									</Col>
+								</>
+							)}
+						</>
+					)}
 				</Row>
 			</Spin>
 		</div>
