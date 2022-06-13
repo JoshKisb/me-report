@@ -28,7 +28,12 @@ export const Toolbar = observer(() => {
 	const [loading, setLoading] = useState(false);
 	// const [thematicAreas, setThematicAreas] = useState([]);
 	const initial = useRef(true);
-	const years = reverseRange(new Date().getFullYear(), 2018).map((y) => ({
+	const periodConsts: any = [
+		"LAST_5_FINANCIAL_YEARS",
+		"THIS_FINANCIAL_YEAR",
+		"LAST_FINANCIAL_YEAR",
+	];
+	const years = periodConsts.concat(reverseRange(new Date().getFullYear(), 2018)).map((y: any) => ({
 		label: y,
 		value: y,
 	}));
@@ -108,7 +113,7 @@ export const Toolbar = observer(() => {
 		}
 	}, [store]);
 
-	if (!store) return;
+	if (!store) return null;
 
 	const OrgUnitGroupSelect = (
 		<div style={styles.selectBox}>

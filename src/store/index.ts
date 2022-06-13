@@ -1,8 +1,11 @@
 import React from "react";
 import { makeAutoObservable } from "mobx";
-import { flatten, uniqBy } from "lodash";
+import { flatten, uniqBy, uniq } from "lodash";
 
 const thematicAreaId = "uiuTNKXPniu";
+
+const reverseRange = (from, to) =>
+	[...Array(from - to)].map((_, i) => from - i);
 
 export class Store {
 	engine: any;
@@ -268,6 +271,7 @@ export class Store {
 												] || 0
 											);
 											totalDT += d;
+											totalNT += n;
 											totalTarget = qTVals[i];
 										}
 
@@ -283,17 +287,19 @@ export class Store {
 												] || 0
 											);
 											totalDA += d;
-											totalActual += n;
+											totalNA += n;
+											totalActual = (totalActual ?? 0) + n;
 										}
 										// totalActual = totalActual / totalTarget
 									} else {
-										totalActual += qVals[i] || 0;
-										totalTarget += qTVals[i] || 0;
+										totalActual = (totalActual ?? 0) + (qVals[i] || 0);
+										totalTarget = (totalActual ?? 0) + (qTVals[i] || 0);
 									}
 								}
 
 								if (indicator.type == "Vejcb1Wvjrc") {
-									totalActual = (totalActual / totalDA) * 100;
+									// cumulative percentage
+									totalActual = ((totalNA ?? 0) / totalDA);
 									// totalTarget = totalTarget / totalDT;
 								}
 
@@ -315,7 +321,7 @@ export class Store {
 										percentage =
 											totalActual === totalTarget
 												? 100
-												: (totalActual * 100) /
+												: ((totalActual ?? 0) * 100) /
 												  (totalTarget || 1);
 									}
 								}
@@ -784,10 +790,32 @@ export class Store {
 		return orgUnits ?? [];
 	}
 
+	periodConsts: any = [
+		"LAST_5_FINANCIAL_YEARS",
+		"THIS_FINANCIAL_YEAR",
+		"LAST_FINANCIAL_YEAR",
+	];
+
+
+
 	get selectedYearArray() {
-		return Array.isArray(this.selectedYear)
+		let years = Array.isArray(this.selectedYear)
 			? this.selectedYear
 			: [this.selectedYear];
+
+		years = years.flatMap(y => {
+			if (y === "THIS_FINANCIAL_YEAR")
+				return new Date().getFullYear();
+			else if (y === "LAST_FINANCIAL_YEAR")
+				return new Date().getFullYear() - 1;
+			else if (y === "LAST_5_FINANCIAL_YEARS")
+				return reverseRange(
+					new Date().getFullYear(),
+					new Date().getFullYear() - 5
+				);
+			else return y;
+		})
+		return uniq(years);
 	}
 
 	get fieldsSelected() {
@@ -795,6 +823,7 @@ export class Store {
 			obj: this.selectedObjective,
 			proj: this.selectedProject,
 			orgA: this.selectedObjectiveArray,
+			years: this.selectedYearArray,
 		});
 		return (
 			!!this.selectedObjectiveArray?.length &&
