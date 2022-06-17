@@ -37,7 +37,7 @@ export class Store {
 	selectedThematicArea?: any;
 	financialyearProjects: any;
 	selectedObjective?: any;
-	selectedYear?: any = [new Date().getFullYear()];
+	selectedYear?: any = ["THIS_FINANCIAL_YEAR"];//[new Date().getFullYear()];
 	indicators?: any = [];
 
 	constructor(engine) {

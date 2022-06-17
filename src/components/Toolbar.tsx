@@ -61,7 +61,7 @@ export const Toolbar = observer(() => {
 		const objectives = projects.flatMap((p) => p.objectives);
 		setObjectives(objectives);
 		console.log("xfs", store.financialyearProjects, store.selectedProjectArray)
-		if (store.selectedProjectArray.some(p => store.financialyearProjects.some(fp => fp.id == p))) {
+		if (projects.some(p => store.financialyearProjects.some(fp => fp.name == p.name))) {
 			setYears(periodFilters) 
 		} else {
 			setYears(periodFilters.concat(yearFilters))
