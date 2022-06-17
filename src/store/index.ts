@@ -7,6 +7,22 @@ const thematicAreaId = "uiuTNKXPniu";
 const reverseRange = (from, to) =>
 	[...Array(from - to)].map((_, i) => from - i);
 
+	const periodConsts: string[] = [
+		"LAST_5_FINANCIAL_YEARS",
+		"THIS_FINANCIAL_YEAR",
+		"LAST_FINANCIAL_YEAR",
+	];
+
+	const getCurrentFinancialYear = () => {
+		const today = new Date();
+		if (today.getMonth() + 1 < 10) {
+			return today.getFullYear() - 1;
+		} else {
+			return today.getFullYear();
+		}
+	}
+
+
 export class Store {
 	engine: any;
 	userOrgUnits: any = [];
@@ -19,6 +35,7 @@ export class Store {
 	selectedProject?: any;
 	thematicAreas?: any;
 	selectedThematicArea?: any;
+	financialyearProjects: any;
 	selectedObjective?: any;
 	selectedYear?: any = [new Date().getFullYear()];
 	indicators?: any = [];
@@ -87,6 +104,7 @@ export class Store {
 		const orgUnits = this.selectedOrgUnitArray;
 		const years = this.selectedYearArray;
 		const objectives = this.selectedObjectiveArray;
+		const currFYear = getCurrentFinancialYear();
 
 		console.log("objectives", objectives);
 
@@ -102,17 +120,38 @@ export class Store {
 				},
 			},
 		};
+
+		
+
 		try {
 			const result = await this.engine.query(query);
 			console.log("fetchIndictors:", result);
 
-			const periods = years.flatMap((year) => [
-				`${year}`,
-				`${year}Q1`,
-				`${year}Q2`,
-				`${year}Q3`,
-				`${year}Q4`,
-			]);
+			const quarterPeriods = (year) => {
+				return [
+					`${year}`,
+					`${year}Q1`,
+					`${year}Q2`,
+					`${year}Q3`,
+					`${year}Q4`,
+				];
+			}
+			const periods = years.flatMap((year) => {
+				if (periodConsts.includes(year)) {					
+					if (year === "THIS_FINANCIAL_YEAR")
+						return [`${currFYear}Oct`].concat(quarterPeriods(currFYear));
+					else if (year === "LAST_FINANCIAL_YEAR")
+						return [`${currFYear - 1}Oct`].concat(quarterPeriods(currFYear - 1));
+					else if (year === "LAST_5_FINANCIAL_YEARS") {
+						return reverseRange(
+							currFYear,
+							currFYear - 5
+						).flatMap(y => [`${y}Oct`].concat(quarterPeriods(y)));
+					}
+				} else {
+					return quarterPeriods(year)
+				}
+		});
 
 			const periodStr = periods.join(";");
 
@@ -174,12 +213,25 @@ export class Store {
 
 				type TotalNum = number | null | undefined;
 
+				const yearsArr = uniq(years.flatMap((y) => {
+					if (y === "THIS_FINANCIAL_YEAR")
+						return currFYear;
+					else if (y === "LAST_FINANCIAL_YEAR")
+						return currFYear - 1;
+					else if (y === "LAST_5_FINANCIAL_YEARS")
+						return reverseRange(
+							new Date().getFullYear(),
+							new Date().getFullYear() - 5
+						);
+					else return y;					
+				}))
+
 				indicatorMaps.forEach((indicatorGroup) => {
 					const indicatorMap = indicatorGroup.indicators;
 
 					const indicatorValues = Object.values(indicatorMap).flatMap(
 						(indicator: any) => {
-							return years.map((year) => {
+							return yearsArr.map((year) => {
 								let qVals = [];
 								let qTVals = [];
 								let systemTarget = 0;
@@ -200,12 +252,29 @@ export class Store {
 								const targetYrRow = result.rows.find(
 									(row) =>
 										row[indexes.dx] ===
-											indicator.targetId &&
+											indicator.actualId &&
 										row[indexes.pe] === `${year}` &&
 										row[indexes.rJ9cwmnKoP1] ===
 											"MAKKtv2MQbt"
 								);
-								systemTarget = targetYrRow?.[indexes.value];
+
+								const targetFYrRow = result.rows.find(
+									(row) =>
+										row[indexes.dx] ===
+											indicator.actualId &&
+										row[indexes.pe] === `${year}Oct` &&
+										row[indexes.rJ9cwmnKoP1] ===
+											"MAKKtv2MQbt"
+								);
+
+								console.log("xxx", year, targetFYrRow)
+
+								systemTarget = targetYrRow?.[indexes.value] ?? targetFYrRow?.[indexes.value];
+								let hasOctPE = false;
+								if (!!targetFYrRow) {
+									hasOctPE = true
+									console.log("zz", systemTarget)
+								}
 
 								let totalNA = 0;
 								let totalDA = 0;
@@ -303,8 +372,12 @@ export class Store {
 									// totalTarget = totalTarget / totalDT;
 								}
 
+								if (hasOctPE) {
+									totalTarget = systemTarget
+								}
+
 								// set total to null instead of 0
-								if (qTVals.every((x) => x == null))
+								if (qTVals.every((x) => x == null && !hasOctPE))
 									totalTarget = null;
 								if (qVals.every((x) => x == null))
 									totalActual = null;
@@ -554,6 +627,14 @@ export class Store {
 					// fields: "id,path,displayName,children::isNotEmpty",
 				},
 			},
+			orgGroupSets: {
+				resource: "organisationUnitGroupSets/B8lUy9aLTWq.json",
+				params: {
+					paging: false,
+					fields: "items[id,name]"
+				}
+			}
+
 		};
 		try {
 			const data = await this.engine.query(query);
@@ -563,6 +644,7 @@ export class Store {
 
 			this.userOrgUnits = orgs;
 			this.orgUnitGroups = orgUnitGroups;
+			this.financialyearProjects = data.orgGroupSets.items;
 		} catch (e) {
 			console.log("error", e);
 		}
@@ -790,32 +872,12 @@ export class Store {
 		return orgUnits ?? [];
 	}
 
-	periodConsts: any = [
-		"LAST_5_FINANCIAL_YEARS",
-		"THIS_FINANCIAL_YEAR",
-		"LAST_FINANCIAL_YEAR",
-	];
-
-
-
 	get selectedYearArray() {
 		let years = Array.isArray(this.selectedYear)
 			? this.selectedYear
 			: [this.selectedYear];
 
-		years = years.flatMap(y => {
-			if (y === "THIS_FINANCIAL_YEAR")
-				return new Date().getFullYear();
-			else if (y === "LAST_FINANCIAL_YEAR")
-				return new Date().getFullYear() - 1;
-			else if (y === "LAST_5_FINANCIAL_YEARS")
-				return reverseRange(
-					new Date().getFullYear(),
-					new Date().getFullYear() - 5
-				);
-			else return y;
-		})
-		return uniq(years);
+		return years;
 	}
 
 	get fieldsSelected() {

@@ -33,10 +33,17 @@ export const Toolbar = observer(() => {
 		"THIS_FINANCIAL_YEAR",
 		"LAST_FINANCIAL_YEAR",
 	];
-	const years = periodConsts.concat(reverseRange(new Date().getFullYear(), 2018)).map((y: any) => ({
+
+	const periodFilters = periodConsts.map((y: any) => ({
+		label: y,
+		value: y,
+	}))
+
+	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map((y: any) => ({
 		label: y,
 		value: y,
 	}));
+	const [years, setYears] = useState(periodFilters.concat(yearFilters));
 
 	// change objectives when project changes
 	useEffect(() => {
@@ -53,7 +60,12 @@ export const Toolbar = observer(() => {
 
 		const objectives = projects.flatMap((p) => p.objectives);
 		setObjectives(objectives);
-
+		console.log("xfs", store.financialyearProjects, store.selectedProjectArray)
+		if (store.selectedProjectArray.some(p => store.financialyearProjects.some(fp => fp.id == p))) {
+			setYears(periodFilters) 
+		} else {
+			setYears(periodFilters.concat(yearFilters))
+		}
 		if (initial.current) {
 			store.setSelectedObjective([
 				"HJbIZqv0VNl",
