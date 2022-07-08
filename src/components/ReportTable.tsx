@@ -76,7 +76,7 @@ export const ReportTable = observer(() => {
 	}, [indicators, search]);
 
 	const filterIndicators = () => {
-		let filtered: any[] = indicators;
+		let filtered: any[] = indicators ?? [];
 
 		if (filters.length > 0) {
 			filtered = indicators.map((area) => {

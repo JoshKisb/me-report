@@ -867,13 +867,13 @@ export class Store {
 			orgUnits = orgUnitGroupOrgs?.map((o) => o.id);
 		}
 
-		if (!!this.selectedOrgUnit) {
+		else if (!!this.hasSelectedOrgUnit) {
 			orgUnits = Array.isArray(this.selectedOrgUnit)
 				? this.selectedOrgUnit
 				: [this.selectedOrgUnit];
 		}
 
-		if (!!this.selectedLevel && !!this.selectedProjectOrgs) {
+		else if (!!this.selectedLevel && !!this.selectedProjectOrgs) {
 			orgUnits = this.selectedProjectOrgs.map((o) => o.id);
 		}
 
@@ -895,7 +895,7 @@ export class Store {
 		console.log("state", {
 			obj: this.selectedObjective,
 			proj: this.selectedProject,
-			orgA: this.selectedObjectiveArray,
+			orgA: this.selectedOrgUnitArray,
 			years: this.selectedYearArray,
 		});
 		return (
