@@ -843,6 +843,17 @@ export class Store {
 		}
 		return levelOrgs;
 	}
+
+	get hasSelectedOrgUnit() {
+		if (!this.selectedOrgUnit)
+			return false;
+
+		if (Array.isArray(this.selectedOrgUnit))
+			return this.selectedOrgUnit.length > 0;
+
+		return true;
+	}
+	
 	get selectedOrgUnitArray() {
 		let orgUnitGroupOrgs;
 		let levelOrgs;

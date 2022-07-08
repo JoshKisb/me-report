@@ -142,7 +142,7 @@ export const Toolbar = observer(() => {
 				onChange={store.setSelectedOrgUnitGroup}
 				value={store.selectedOrgUnitGroup}
 				allowClear={true}
-				disabled={!!store?.selectedLevel || !!store?.selectedOrgUnit}
+				disabled={!!store?.selectedLevel || (!!store?.hasSelectedOrgUnit )}
 				// mode="multiple"
 				options={store.orgUnitGroups}
 				filterOption={(input, option) => {
