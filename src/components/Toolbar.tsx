@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Row, Col, Select, Spin } from "antd";
+import { Row, Col, Select, Spin, Button } from "antd";
 import { observer } from "mobx-react-lite";
 import { Store, useStore } from "../store";
 import { OrgUnitTree } from "./OrgUnitTree";
@@ -26,6 +26,7 @@ export const Toolbar = observer(() => {
 	const store = useStore();
 	const [objectives, setObjectives] = useState([]);
 	const [loading, setLoading] = useState(false);
+	const [showOrgUnit, setShowOrgUnit] = useState(false);
 	// const [thematicAreas, setThematicAreas] = useState([]);
 	const initial = useRef(true);
 	const periodConsts: any = [
@@ -38,6 +39,15 @@ export const Toolbar = observer(() => {
 		label: y,
 		value: y,
 	}));
+
+	const toggleOrgUnitSelect = () => {
+		setShowOrgUnit((state) => !state);
+	};
+
+	useEffect(() => {
+		if (!showOrgUnit && store?.hasSelectedOrgUnit)
+			store?.setSelectedOrgUnit(null);
+	}, [showOrgUnit]);
 
 	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map(
 		(y: any) => ({
@@ -76,7 +86,7 @@ export const Toolbar = observer(() => {
 		} else {
 			setYears(periodFilters.concat(yearFilters));
 		}
-		if (initial.current) {
+		if (initial.current && store.isProjectManager) {
 			store.setSelectedObjective([
 				"HJbIZqv0VNl",
 				"luRWrgWwVtQ",
@@ -242,7 +252,7 @@ export const Toolbar = observer(() => {
 				value={store.selectedObjective}
 				options={objectives}
 				filterOption={(input, option: any) => {
-					console.log(input, option);
+					// console.log(input, option);
 					return (
 						option?.name
 							.toLowerCase()
@@ -292,46 +302,95 @@ export const Toolbar = observer(() => {
 	return (
 		<div className="topBar">
 			<Spin spinning={loading}>
-				<Row gutter={{ xs: 8, sm: 16 }} style={{ minHeight: "70px" }}>
-					{!loading && (
-						<>
-							{!store.isProjectManager ? (
-								<>
-									<Col className="gutter-row" xs={24} md={6}>
-										{OrgUnitGroupSelect}
-									</Col>
-									{/* <Col className="gutter-row" xs={24} md={5}>
-										{orgUnitSelect}
-									</Col> */}
-									{/* <Col className="gutter-row" xs={24} md={3}>
+				<>
+					<Row
+						gutter={{ xs: 8, sm: 16 }}
+						style={{ minHeight: "70px" }}
+					>
+						{!loading && (
+							<>
+								{!store.isProjectManager ? (
+									<>
+										<div
+											className="mb-2 w-100"
+											style={{ marginTop: "-4px" }}
+										>
+											<Button
+												onClick={toggleOrgUnitSelect}
+											>
+												Toggle OrgUnit Select
+											</Button>
+										</div>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={showOrgUnit ? 4 : 6}
+										>
+											{OrgUnitGroupSelect}
+										</Col>
+										{showOrgUnit && (
+											<Col
+												className="gutter-row"
+												xs={24}
+												md={5}
+											>
+												{orgUnitSelect}
+											</Col>
+										)}
+										{/* <Col className="gutter-row" xs={24} md={3}>
 										{projectSelect}
 									</Col> */}
-									<Col className="gutter-row" xs={24} md={6}>
-										{thematicAreaSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={7}>
-										{objectiveSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={5}>
-										{yearSelect}
-									</Col>
-								</>
-							) : (
-								<>
-									<Col className="gutter-row" xs={24} md={8}>
-										{orgUnitSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={8}>
-										{projectSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={8}>
-										{yearSelect}
-									</Col>
-								</>
-							)}
-						</>
-					)}
-				</Row>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={showOrgUnit ? 5 : 6}
+										>
+											{thematicAreaSelect}
+										</Col>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={showOrgUnit ? 6 : 7}
+										>
+											{objectiveSelect}
+										</Col>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={showOrgUnit ? 4 : 5}
+										>
+											{yearSelect}
+										</Col>
+									</>
+								) : (
+									<>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={8}
+										>
+											{orgUnitSelect}
+										</Col>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={8}
+										>
+											{projectSelect}
+										</Col>
+										<Col
+											className="gutter-row"
+											xs={24}
+											md={8}
+										>
+											{yearSelect}
+										</Col>
+									</>
+								)}
+							</>
+						)}
+					</Row>
+				</>
 			</Spin>
 		</div>
 	);

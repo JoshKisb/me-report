@@ -118,7 +118,7 @@ export const ReportTable = observer(() => {
 					"Objective",
 					"Objective Id",
 					"Indicator",
-					"Baseline",
+					// "Baseline",
 					"Target",
 					"Actual",
 					"Percentage",
@@ -139,7 +139,7 @@ export const ReportTable = observer(() => {
 						area.objective,
 						area.objectiveId,
 						indicator.name,
-						0,
+						// 0,
 						indicator.target,
 						indicator.actual,
 						Math.round(indicator.percentage),
@@ -194,7 +194,7 @@ export const ReportTable = observer(() => {
 				<td>{indicator.year}</td>
 				<td>{indicator.orgUnitObj.name}</td>
 				<td>{indicator.name}</td>
-				<td>0</td>
+				{/* <td>0</td> */}
 				<td>{indicator.target ?? NA}</td>
 				<td>{indicator.actual ?? NA}</td>
 				<td style={cellStyle(indicator)}>
@@ -347,7 +347,7 @@ export const ReportTable = observer(() => {
 								<th rowspan="2">Year</th>
 								<th rowspan="2">Org Unit</th>
 								<th rowspan="2">Indicator (Code)</th>
-								<th rowspan="2">Baseline</th>
+								{/* <th rowspan="2">Baseline</th> */}
 								<th rowspan="2">Target</th>
 								<th rowspan="2">Actual</th>
 								<th rowspan="2">% age Achieved</th>
