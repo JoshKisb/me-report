@@ -37,12 +37,14 @@ export const Toolbar = observer(() => {
 	const periodFilters = periodConsts.map((y: any) => ({
 		label: y,
 		value: y,
-	}))
-
-	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map((y: any) => ({
-		label: y,
-		value: y,
 	}));
+
+	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map(
+		(y: any) => ({
+			label: y,
+			value: y,
+		})
+	);
 	const [years, setYears] = useState(periodFilters.concat(yearFilters));
 
 	// change objectives when project changes
@@ -60,11 +62,19 @@ export const Toolbar = observer(() => {
 
 		const objectives = projects.flatMap((p) => p.objectives);
 		setObjectives(objectives);
-		console.log("xfs", store.financialyearProjects, store.selectedProjectArray)
-		if (projects.some(p => store.financialyearProjects.some(fp => fp.name == p.name))) {
-			setYears(periodFilters) 
+		console.log(
+			"xfs",
+			store.financialyearProjects,
+			store.selectedProjectArray
+		);
+		if (
+			projects.some((p) =>
+				store.financialyearProjects.some((fp) => fp.name == p.name)
+			)
+		) {
+			setYears(periodFilters);
 		} else {
-			setYears(periodFilters.concat(yearFilters))
+			setYears(periodFilters.concat(yearFilters));
 		}
 		if (initial.current) {
 			store.setSelectedObjective([
@@ -84,7 +94,8 @@ export const Toolbar = observer(() => {
 		console.log("group", group);
 		const project = store.projects.find((p) => p.name === group.name);
 		console.log("project", project);
-		if (!!project)// && !store.selectedProjectArray.includes(project.id))
+		if (!!project)
+			// && !store.selectedProjectArray.includes(project.id))
 			store.setSelectedProject(project.id);
 	}, [store?.selectedOrgUnitGroup]);
 
@@ -116,9 +127,11 @@ export const Toolbar = observer(() => {
 				store.loadProjects(),
 			]).finally(() => {
 				setLoading(false);
-				store.setSelectedOrgUnit(["UqgSgdDNxpA"]);
-				// store.setSelectedOrgUnitGroup("zLC9Te91DUs");
-				store.setSelectedProject(["JsOhoxYXnXd"]);
+				if (store.isProjectManager) {
+					store.setSelectedOrgUnit(["UqgSgdDNxpA"]);
+					// store.setSelectedOrgUnitGroup("zLC9Te91DUs");
+					store.setSelectedProject(["JsOhoxYXnXd"]);
+				}
 			});
 		}
 	}, [store]);
@@ -140,7 +153,7 @@ export const Toolbar = observer(() => {
 				onChange={store.setSelectedOrgUnitGroup}
 				value={store.selectedOrgUnitGroup}
 				allowClear={true}
-				disabled={!!store?.selectedLevel || (!!store?.hasSelectedOrgUnit )}
+				disabled={!!store?.selectedLevel || !!store?.hasSelectedOrgUnit}
 				// mode="multiple"
 				options={store.orgUnitGroups}
 				filterOption={(input, option) => {
@@ -284,32 +297,22 @@ export const Toolbar = observer(() => {
 						<>
 							{!store.isProjectManager ? (
 								<>
-									<Col className="gutter-row" xs={24} md={4}>
+									<Col className="gutter-row" xs={24} md={6}>
 										{OrgUnitGroupSelect}
 									</Col>
-									<Col className="gutter-row" xs={24} md={5}>
+									{/* <Col className="gutter-row" xs={24} md={5}>
 										{orgUnitSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={3}>
+									</Col> */}
+									{/* <Col className="gutter-row" xs={24} md={3}>
 										{projectSelect}
-									</Col>
-									<Col className="gutter-row" xs={24} md={4}>
+									</Col> */}
+									<Col className="gutter-row" xs={24} md={6}>
 										{thematicAreaSelect}
 									</Col>
-									<Col
-										className="gutter-row"
-										xs={24}
-										md={5}
-										lg={5}
-									>
+									<Col className="gutter-row" xs={24} md={7}>
 										{objectiveSelect}
 									</Col>
-									<Col
-										className="gutter-row"
-										xs={24}
-										md={3}
-										lg={3}
-									>
+									<Col className="gutter-row" xs={24} md={5}>
 										{yearSelect}
 									</Col>
 								</>
