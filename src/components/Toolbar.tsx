@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Row, Col, Select, Spin, Button } from "antd";
+import { Row, Col, Select, Spin, Button, Switch } from "antd";
 import { observer } from "mobx-react-lite";
 import { Store, useStore } from "../store";
 import { OrgUnitTree } from "./OrgUnitTree";
@@ -40,8 +40,8 @@ export const Toolbar = observer(() => {
 		value: y,
 	}));
 
-	const toggleOrgUnitSelect = () => {
-		setShowOrgUnit((state) => !state);
+	const toggleOrgUnitSelect = (checked: boolean) => {
+		setShowOrgUnit(checked);
 	};
 
 	useEffect(() => {
@@ -312,23 +312,21 @@ export const Toolbar = observer(() => {
 								{!store.isProjectManager ? (
 									<>
 										<div
-											className="mb-2 w-100"
+											className="mb-2 w-100 d-flex"
 											style={{ marginTop: "-4px" }}
 										>
-											<Button
-												onClick={toggleOrgUnitSelect}
-											>
-												Toggle OrgUnit Select
-											</Button>
+											<Switch checked={showOrgUnit} onChange={setShowOrgUnit} />
+											<p className="mb-0" style={{ marginLeft: "5px" }}>Select by OrgUnit</p>
+											
 										</div>
-										<Col
+										{!showOrgUnit ? <Col
 											className="gutter-row"
 											xs={24}
-											md={showOrgUnit ? 4 : 6}
+											md={6}
 										>
 											{OrgUnitGroupSelect}
 										</Col>
-										{showOrgUnit && (
+										: (
 											<Col
 												className="gutter-row"
 												xs={24}
@@ -337,27 +335,27 @@ export const Toolbar = observer(() => {
 												{orgUnitSelect}
 											</Col>
 										)}
-										{/* <Col className="gutter-row" xs={24} md={3}>
+										{showOrgUnit && <Col className="gutter-row" xs={24} md={4}>
 										{projectSelect}
-									</Col> */}
+									</Col> }
 										<Col
 											className="gutter-row"
 											xs={24}
-											md={showOrgUnit ? 5 : 6}
+											md={showOrgUnit ? 5: 6}
 										>
 											{thematicAreaSelect}
 										</Col>
 										<Col
 											className="gutter-row"
 											xs={24}
-											md={showOrgUnit ? 6 : 7}
+											md={showOrgUnit ? 6: 8}
 										>
 											{objectiveSelect}
 										</Col>
 										<Col
 											className="gutter-row"
 											xs={24}
-											md={showOrgUnit ? 4 : 5}
+											md={4}
 										>
 											{yearSelect}
 										</Col>

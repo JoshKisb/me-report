@@ -273,7 +273,7 @@ export class Store {
 								let hasOctPE = false;
 								if (!!targetFYrRow) {
 									hasOctPE = true
-									console.log("zz", systemTarget)
+									// console.log("zz", systemTarget)
 								}
 
 								let totalNA = 0;
