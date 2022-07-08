@@ -84,10 +84,8 @@ export const Toolbar = observer(() => {
 		console.log("group", group);
 		const project = store.projects.find((p) => p.name === group.name);
 		console.log("project", project);
-		if (!!project && !store.selectedProjectArray.includes(project.id))
-			store.setSelectedProject(
-				store.selectedProjectArray.concat(project.id)
-			);
+		if (!!project)// && !store.selectedProjectArray.includes(project.id))
+			store.setSelectedProject(project.id);
 	}, [store?.selectedOrgUnitGroup]);
 
 	// change objectives when thematic area changes
@@ -129,7 +127,7 @@ export const Toolbar = observer(() => {
 
 	const OrgUnitGroupSelect = (
 		<div style={styles.selectBox}>
-			<p style={styles.label}>Selected OrgUnit Group</p>
+			<p style={styles.label}>Projects</p>
 
 			<Select
 				showSearch
@@ -172,8 +170,9 @@ export const Toolbar = observer(() => {
 				allowClear={true}
 				mode="multiple"
 				options={store.projects}
+				disabled={!!store.selectedOrgUnitGroup}
 				filterOption={(input, option) => {
-					console.log(option);
+					// console.log(option);
 					return (
 						option?.name
 							.toLowerCase()
