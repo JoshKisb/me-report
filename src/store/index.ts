@@ -744,7 +744,7 @@ export class Store {
 		};
 		try {
 			const data = await this.engine.query(query);
-			// console.log("projects:", data);
+			console.log("load projects:", data);
 
 			this.thematicAreas = data.thematicAreas.indicatorGroups.map(
 				(area) => {
@@ -865,6 +865,7 @@ export class Store {
 			);
 			orgUnitGroupOrgs = group?.organisationUnits;
 			orgUnits = orgUnitGroupOrgs?.map((o) => o.id);
+			orgUnits = [...new Set(orgUnits)]
 		}
 
 		else if (!!this.hasSelectedOrgUnit) {

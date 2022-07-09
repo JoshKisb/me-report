@@ -47,6 +47,8 @@ export const Toolbar = observer(() => {
 	useEffect(() => {
 		if (!showOrgUnit && store?.hasSelectedOrgUnit)
 			store?.setSelectedOrgUnit(null);
+		if (showOrgUnit)
+			store?.setSelectedOrgUnitGroup(null);
 	}, [showOrgUnit]);
 
 	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map(
