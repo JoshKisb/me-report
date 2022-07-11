@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import { Store, useStore } from "../store";
 import { CSVLink } from "react-csv";
-import { Button, Drawer, Checkbox, Input } from "antd";
+import { Button, Drawer, Checkbox, Input, Switch } from "antd";
 import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
 import { useStateWithCallbackLazy } from "use-state-with-callback";
 
@@ -91,8 +91,11 @@ export const ReportTable = observer(() => {
 		}
 		filtered = filtered
 			.filter((area) => area.values.length > 0)
-			.map(ind => ({...ind, values: ind.values.sort((a, b) => a.code.localeCompare(b.code))}));
-		
+			.map((ind) => ({
+				...ind,
+				values: ind.values.sort((a, b) => a.code.localeCompare(b.code)),
+			}));
+
 		console.log("filt", filtered);
 		setFilteredIndicators(filtered);
 	};
@@ -272,71 +275,83 @@ export const ReportTable = observer(() => {
 			)}
 			{!!store.fieldsSelected && !loading && !!indicators && (
 				<div>
-					<CSVLink
-						ref={csvBtn}
-						data={csvData}
-						filename={"me-report.csv"}
-						style={{ display: "none" }}
-					/>
-					<Button
-						type="primary"
-						icon={<DownloadOutlined />}
-						loading={loadingCSV}
-						onClick={prepareCSV}
-						style={{ marginBottom: "10px" }}
-					>
-						Download CSV
-					</Button>
+					<div className="d-flex">
+						<CSVLink
+							ref={csvBtn}
+							data={csvData}
+							filename={"me-report.csv"}
+							style={{ display: "none" }}
+						/>
+						<Button
+							type="primary"
+							icon={<DownloadOutlined />}
+							loading={loadingCSV}
+							onClick={prepareCSV}
+							style={{ marginBottom: "10px" }}
+						>
+							Download CSV
+						</Button>
 
-					<div className="d-flex mb-3">
-						<div className="filterBtn">
-							<Button
-								icon={<FilterOutlined />}
-								onClick={showDrawer}
-							/>
+						<div className="d-flex mb-3 ml-3">
+							<div className="filterBtn">
+								<Button
+									icon={<FilterOutlined />}
+									onClick={showDrawer}
+								/>
+							</div>
+							<div className="filterList">
+								{getFilterIndicators().map((i) => (
+									<span
+										key={i.id}
+										className="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
+									>
+										{i.name}
+									</span>
+								))}
+							</div>
 						</div>
-						<div className="filterList">
-							{getFilterIndicators().map((i) => (
-								<span
-									key={i.id}
-									className="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
-								>
-									{i.name}
-								</span>
-							))}
+
+						<Drawer
+							title="Filter Indicators"
+							placement="right"
+							width={720}
+							onClose={onClose}
+							visible={visible}
+							bodyStyle={{ paddingTop: 0 }}
+						>
+							<div className="filterSearch">
+								<Input
+									placeholder="Search..."
+									allowClear
+									onChange={onSearch}
+									style={{ width: "100%" }}
+								/>
+							</div>
+
+							<Checkbox.Group
+								style={{ width: "100%", marginTop: "12px" }}
+								onChange={onFilter}
+							>
+								{idxFilters.map((indicator) => (
+									<p key={indicator.id}>
+										<Checkbox value={indicator.id}>
+											{indicator.name}
+										</Checkbox>
+									</p>
+								))}
+							</Checkbox.Group>
+						</Drawer>
+
+						<div className="ml-auto d-flex">
+							<Switch
+								checked={store.showOrgUnit}
+								onChange={store.setShowOrgUnit}
+							/>
+							<p className="mb-0" style={{ marginLeft: "5px" }}>
+								Facility details
+							</p>
 						</div>
 					</div>
-
-					<Drawer
-						title="Filter Indicators"
-						placement="right"
-						width={720}
-						onClose={onClose}
-						visible={visible}
-						bodyStyle={{ paddingTop: 0 }}
-					>
-						<div className="filterSearch">
-							<Input
-								placeholder="Search..."
-								allowClear
-								onChange={onSearch}
-								style={{ width: "100%" }}
-							/>
-						</div>
-
-						<Checkbox.Group
-							style={{ width: "100%", marginTop: "12px" }}
-							onChange={onFilter}
-						>
-							{idxFilters.map((indicator) => (
-								<p key={indicator.id}>
-									<Checkbox value={indicator.id}>
-										{indicator.name}
-									</Checkbox>
-								</p>
-							))}
-						</Checkbox.Group>
-					</Drawer>
 
 					<table className="report-table table table-bordered">
 						<thead className="table-dark">

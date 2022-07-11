@@ -39,6 +39,7 @@ export class Store {
 	selectedObjective?: any;
 	selectedYear?: any = ["THIS_FINANCIAL_YEAR"];//[new Date().getFullYear()];
 	indicators?: any = [];
+	showOrgUnit: boolean = true;
 
 	constructor(engine) {
 		makeAutoObservable(this);
@@ -49,6 +50,9 @@ export class Store {
 		this.orgUnitGroups = [];
 	}
 
+	setShowOrgUnit = (val) => {
+		this.showOrgUnit = val;
+	}
 	setSelectedLevel = (level) => {
 		this.selectedLevel = level;
 	};
@@ -157,7 +161,8 @@ export class Store {
 
 			// Filter by selected thematic area
 			const indicatorGroupsRes = result.indicatorGroups.indicatorGroups;
-			const indicatorGroups = indicatorGroupsRes.map((group) => {
+			const idg = uniqBy(indicatorGroupsRes, "id")
+			const indicatorGroups = idg.map((group) => {
 				if (this.selectedThematicAreaArray.length > 0) {
 					const possibleIndicators = this.thematicAreas
 						.filter((area) =>
@@ -165,9 +170,10 @@ export class Store {
 						)
 						.flatMap((area) => area.indicators);
 
+					const possibleIndicatorsUniq = uniqBy(possibleIndicators, "id")
 					const filteredIndicators = group.indicators.filter(
 						(indicator) =>
-							possibleIndicators.some(
+							possibleIndicatorsUniq.some(
 								(pi) => pi.id == indicator.id
 							)
 					);
@@ -897,6 +903,7 @@ export class Store {
 			obj: this.selectedObjective,
 			proj: this.selectedProject,
 			orgA: this.selectedOrgUnitArray,
+			themat: this.selectedThematicAreaArray,
 			years: this.selectedYearArray,
 		});
 		return (

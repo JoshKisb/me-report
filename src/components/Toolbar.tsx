@@ -26,7 +26,9 @@ export const Toolbar = observer(() => {
 	const store = useStore();
 	const [objectives, setObjectives] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [showOrgUnit, setShowOrgUnit] = useState(false);
+	// const [showOrgUnit, setShowOrgUnit] = useState(true);
+
+	const showOrgUnit = store?.showOrgUnit;
 	// const [thematicAreas, setThematicAreas] = useState([]);
 	const initial = useRef(true);
 	const periodConsts: any = [
@@ -90,7 +92,7 @@ export const Toolbar = observer(() => {
 		} else {
 			setYears(periodFilters.concat(yearFilters));
 		}
-		if (initial.current && store.isProjectManager) {
+		if (initial.current && (store.isProjectManager || showOrgUnit)) {
 			store.setSelectedObjective([
 				"HJbIZqv0VNl",
 				"luRWrgWwVtQ",
@@ -141,9 +143,10 @@ export const Toolbar = observer(() => {
 				store.loadProjects(),
 			]).finally(() => {
 				setLoading(false);
-				if (store.isProjectManager) {
+				if (store.isProjectManager || showOrgUnit) {
 					store.setSelectedOrgUnit(["UqgSgdDNxpA"]);
 					// store.setSelectedOrgUnitGroup("zLC9Te91DUs");
+					store.setSelectedThematicArea(["iufplqKAzy8"]);
 					store.setSelectedProject(["JsOhoxYXnXd"]);
 				}
 			});
@@ -315,14 +318,9 @@ export const Toolbar = observer(() => {
 							<>
 								{!store.isProjectManager ? (
 									<>
-										<div
-											className="mb-2 w-100 d-flex"
-											style={{ marginTop: "-4px" }}
-										>
-											<Switch checked={showOrgUnit} onChange={setShowOrgUnit} />
-											<p className="mb-0" style={{ marginLeft: "5px" }}>Select by OrgUnit</p>
-											
-										</div>
+										
+										
+										
 										{!showOrgUnit ? <Col
 											className="gutter-row"
 											xs={24}
