@@ -52,10 +52,17 @@
 .report {
 	width: 100%;
 	flex: 1;
-	padding: 24px 15px;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+}
+
+.report-page {
+	padding: 24px 15px;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	flex: 1;
 }
 
 .report-table {

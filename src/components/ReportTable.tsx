@@ -12,7 +12,7 @@ const styles = {
 		alignSelf: "center",
 		width: "100%",
 		color: "#6c757d",
-	},
+	} as React.CSSProperties,
 };
 
 // const { Search } = Input;
@@ -256,137 +256,143 @@ export const ReportTable = observer(() => {
 	};
 
 	return (
-		<div className="report">
-			{loading && (
-				<div className="loadingWrapper">
-					<div
-						className="spinner-border"
-						style={{ width: "3rem", height: "3rem" }}
-						role="status"
-					></div>
-				</div>
-			)}
+		<div className="report-page">
+			<div className="d-flex">
+				<CSVLink
+					ref={csvBtn}
+					data={csvData}
+					filename={"me-report.csv"}
+					style={{ display: "none" }}
+				/>
+				<Button
+					type="primary"
+					icon={<DownloadOutlined />}
+					loading={loadingCSV}
+					disabled={!store.fieldsSelected || loading || !indicators}
+					onClick={prepareCSV}
+					style={{ marginBottom: "10px" }}
+				>
+					Download CSV
+				</Button>
 
-			{!store.fieldsSelected && !loading && (
-				<h5 style={styles.noObjective}>
-					Select an organisation unit, project, objective and year
-					<br /> to view report
-				</h5>
-			)}
-			{!!store.fieldsSelected && !loading && !!indicators && (
-				<div>
-					<div className="d-flex">
-						<CSVLink
-							ref={csvBtn}
-							data={csvData}
-							filename={"me-report.csv"}
-							style={{ display: "none" }}
-						/>
+				<div className="d-flex mb-3 ml-3">
+					<div className="filterBtn">
 						<Button
-							type="primary"
-							icon={<DownloadOutlined />}
-							loading={loadingCSV}
-							onClick={prepareCSV}
-							style={{ marginBottom: "10px" }}
-						>
-							Download CSV
-						</Button>
-
-						<div className="d-flex mb-3 ml-3">
-							<div className="filterBtn">
-								<Button
-									icon={<FilterOutlined />}
-									onClick={showDrawer}
-								/>
-							</div>
-							<div className="filterList">
-								{getFilterIndicators().map((i) => (
-									<span
-										key={i.id}
-										className="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
-									>
-										{i.name}
-									</span>
-								))}
-							</div>
-						</div>
-
-						<Drawer
-							title="Filter Indicators"
-							placement="right"
-							width={720}
-							onClose={onClose}
-							visible={visible}
-							bodyStyle={{ paddingTop: 0 }}
-						>
-							<div className="filterSearch">
-								<Input
-									placeholder="Search..."
-									allowClear
-									onChange={onSearch}
-									style={{ width: "100%" }}
-								/>
-							</div>
-
-							<Checkbox.Group
-								style={{ width: "100%", marginTop: "12px" }}
-								onChange={onFilter}
+							icon={<FilterOutlined />}
+							disabled={
+								!store.fieldsSelected || loading || !indicators
+							}
+							onClick={showDrawer}
+						/>
+					</div>
+					<div className="filterList">
+						{getFilterIndicators().map((i) => (
+							<span
+								key={i.id}
+								className="me-2 mb-1 px-2 badge rounded-pill bg-info text-dark"
 							>
-								{idxFilters.map((indicator) => (
-									<p key={indicator.id}>
-										<Checkbox value={indicator.id}>
-											{indicator.name}
-										</Checkbox>
-									</p>
-								))}
-							</Checkbox.Group>
-						</Drawer>
+								{i.name}
+							</span>
+						))}
+					</div>
+				</div>
 
-						<div className="ml-auto d-flex">
-							<Switch
-								checked={store.showOrgUnit}
-								onChange={store.setShowOrgUnit}
-							/>
-							<p className="mb-0" style={{ marginLeft: "5px" }}>
-								Facility details
-							</p>
-						</div>
+				<Drawer
+					title="Filter Indicators"
+					placement="right"
+					width={720}
+					onClose={onClose}
+					visible={visible}
+					bodyStyle={{ paddingTop: 0 }}
+				>
+					<div className="filterSearch">
+						<Input
+							placeholder="Search..."
+							allowClear
+							onChange={onSearch}
+							style={{ width: "100%" }}
+						/>
 					</div>
 
-					<table className="report-table table table-bordered">
-						<thead className="table-dark">
-							<tr>
-								{store.hasThematicAreas && (
-									<th rowspan="2">Thematic Area</th>
-								)}
-								<th rowspan="2">Year</th>
-								<th rowspan="2">Org Unit</th>
-								<th rowspan="2">Indicator (Code)</th>
-								{/* <th rowspan="2">Baseline</th> */}
-								<th rowspan="2">Target</th>
-								<th rowspan="2">Actual</th>
-								<th rowspan="2">% age Achieved</th>
-								<th colspan="4">Quarterly Status</th>
-							</tr>
-							<tr>
-								<th>Q1</th>
-								<th>Q2</th>
-								<th>Q3</th>
-								<th>Q4</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredIndicators
-								.filter((a) => a.values.length > 0)
-								.map((area) => (
-									<React.Fragment key={area.key}>
-										{renderThematicRow(area)}
-									</React.Fragment>
-								))}
-						</tbody>
-					</table>
+					<Checkbox.Group
+						style={{ width: "100%", marginTop: "12px" }}
+						onChange={onFilter}
+					>
+						{idxFilters.map((indicator) => (
+							<p key={indicator.id}>
+								<Checkbox value={indicator.id}>
+									{indicator.name}
+								</Checkbox>
+							</p>
+						))}
+					</Checkbox.Group>
+				</Drawer>
+
+				<div className="ml-auto d-flex">
+					<Switch
+						checked={store.showOrgUnit}
+						onChange={store.setShowOrgUnit}
+					/>
+					<p className="mb-0" style={{ marginLeft: "5px" }}>
+						Facility details
+					</p>
 				</div>
-			)}
+			</div>
+
+			<div className="report">
+				{loading && (
+					<div className="loadingWrapper">
+						<div
+							className="spinner-border"
+							style={{ width: "3rem", height: "3rem" }}
+							role="status"
+						></div>
+					</div>
+				)}
+
+				{!store.fieldsSelected && !loading && (
+					<h5 style={styles.noObjective}>
+						Select an organisation unit, project, objective and year
+						<br /> to view report
+					</h5>
+				)}
+				{!!store.fieldsSelected && !loading && !!indicators && (
+					<div>
+						<table className="report-table table table-bordered">
+							<thead className="table-dark">
+								<tr>
+									{store.hasThematicAreas && (
+										<th rowspan="2">Thematic Area</th>
+									)}
+									<th rowspan="2">Year</th>
+									<th rowspan="2">Org Unit</th>
+									<th rowspan="2">Indicator (Code)</th>
+									{/* <th rowspan="2">Baseline</th> */}
+									<th rowspan="2">Target</th>
+									<th rowspan="2">Actual</th>
+									<th rowspan="2">% age Achieved</th>
+									<th colspan="4">Quarterly Status</th>
+								</tr>
+								<tr>
+									<th>Q1</th>
+									<th>Q2</th>
+									<th>Q3</th>
+									<th>Q4</th>
+								</tr>
+							</thead>
+							<tbody>
+								{filteredIndicators
+									.filter((a) => a.values.length > 0)
+									.map((area) => (
+										<React.Fragment key={area.key}>
+											{renderThematicRow(area)}
+										</React.Fragment>
+									))}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 });

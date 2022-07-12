@@ -48,7 +48,7 @@ export const Toolbar = observer(() => {
 
 	useEffect(() => {
 		if (!showOrgUnit && store?.hasSelectedOrgUnit)
-			store?.setSelectedOrgUnit(null);
+			store?.setSelectedOrgUnit([]);
 		if (showOrgUnit) {
 			store?.setSelectedOrgUnitGroup(null);
 			store?.setSelectedProject([]);

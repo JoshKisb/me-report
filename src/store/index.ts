@@ -199,6 +199,15 @@ export class Store {
 
 			console.log("this.indicators", this.indicators);
 
+			let ouGroup = "";
+			if (!this.selectedOrgUnitGroup) {
+				ouGroup = ";" + this.selectedProjectArray.map(projectId => {
+					const project = this.projects.find(p => p.id === projectId);
+					const ouGroup = this.orgUnitGroups.find(oug => oug.name === project.name)
+					return `OU_GROUP-${ouGroup.id}`;
+				}).join(";")
+			}
+
 			const dx = indicatorIds.join(";");
 
 			let mappedIndicatorValues = [];
@@ -207,7 +216,7 @@ export class Store {
 
 			for (const orgUnit of orgUnits) {
 				const orgUnitObj = this.getOrgUnit(orgUnit);
-				const url = `/api/29/analytics?dimension=rJ9cwmnKoP1:MAKKtv2MQbt;UwHkqmSsQ7i,dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}&displayProperty=NAME&skipMeta=true&includeNumDen=true`;
+				const url = `/api/29/analytics?dimension=rJ9cwmnKoP1:MAKKtv2MQbt;UwHkqmSsQ7i,dx:${dx},pe:${periodStr}&filter=ou:${orgUnit}${ouGroup}&displayProperty=NAME&skipMeta=true&includeNumDen=true`;
 				const result = await this.engine.link.fetch(url);
 
 				console.log("Result", result);
