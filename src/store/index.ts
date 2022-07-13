@@ -1,6 +1,7 @@
 import React from "react";
 import { makeAutoObservable } from "mobx";
 import { flatten, uniqBy, uniq } from "lodash";
+import { quarterPeriods } from "../utils/valueCalcuations";
 
 const thematicAreaId = "uiuTNKXPniu";
 
@@ -39,7 +40,7 @@ export class Store {
 	selectedObjective?: any;
 	selectedYear?: any = ["THIS_FINANCIAL_YEAR"];//[new Date().getFullYear()];
 	indicators?: any = [];
-	showOrgUnit: boolean = true;
+	showOrgUnit: boolean = false;
 
 	constructor(engine) {
 		makeAutoObservable(this);
@@ -104,6 +105,9 @@ export class Store {
 		return this.getOrgUnit(orgUnit)?.name;
 	};
 
+	
+	
+
 	fetchIndicators = async () => {
 		const orgUnits = this.selectedOrgUnitArray;
 		const years = this.selectedYearArray;
@@ -111,6 +115,7 @@ export class Store {
 		const currFYear = getCurrentFinancialYear();
 
 		console.log("objectives", objectives);
+		console.log("fetch orgs", orgUnits);
 
 		const query = {
 			indicatorGroups: {
@@ -131,15 +136,7 @@ export class Store {
 			const result = await this.engine.query(query);
 			console.log("fetchIndictors:", result);
 
-			const quarterPeriods = (year) => {
-				return [
-					`${year}`,
-					`${year}Q1`,
-					`${year}Q2`,
-					`${year}Q3`,
-					`${year}Q4`,
-				];
-			}
+			
 			const periods = years.flatMap((year) => {
 				if (periodConsts.includes(year)) {					
 					if (year === "THIS_FINANCIAL_YEAR")
@@ -153,7 +150,7 @@ export class Store {
 						).flatMap(y => [`${y}Oct`].concat(quarterPeriods(y)));
 					}
 				} else {
-					return quarterPeriods(year)
+					return quarterPeriods(year, false)
 				}
 		});
 
@@ -296,8 +293,9 @@ export class Store {
 								let totalNT = 0;
 								let totalDT = 0;
 
-								for (let i = 0; i < 4; i++) {
-									const pe = `${year}Q${i + 1}`;
+								quarterPeriods(year, hasOctPE).slice(1).forEach((pe, i) => {
+									// const pe = `${year}Q${i + 1}`;
+									// console.log("pe", pe);
 
 									// Actual
 									const actualRow = result.rows.find(
@@ -379,7 +377,7 @@ export class Store {
 										totalActual = (totalActual ?? 0) + (qVals[i] || 0);
 										totalTarget = (totalActual ?? 0) + (qTVals[i] || 0);
 									}
-								}
+								})
 
 								if (indicator.type == "Vejcb1Wvjrc") {
 									// cumulative percentage
@@ -501,8 +499,8 @@ export class Store {
 	_createIndicatorMaps = (indicatorGroups: any) => {
 		let indicatorMaps: any[] = [];
 
-		const tagRe = /\s*TAG_(\w+)/i; //\s*-\s*(.*)/i;
-		const actRe = /\s*ACT_(\w+)/i; //\s*-\s*(.*)/i;
+		const tagRe = /\s*TAG_(\w+)x?/i; //\s*-\s*(.*)/i;
+		const actRe = /\s*ACT_(\w+)x?/i; //\s*-\s*(.*)/i;
 
 		indicatorGroups.forEach((group) => {
 			let indicatorMap = {};
@@ -560,15 +558,16 @@ export class Store {
 					);
 					indicatorMap[actMatch[1]].actualId = indicator.id;
 				} else {
+					const key = indicator.code.replace(/CURRx$/, 'CURR');
 					addIndicatorToMap(
-						indicator.code,
+						key,
 						indicator.description,
 						colors,
 						thematicArea,
 						indicator.indicatorType.id,
 						indicator.code
 					);
-					indicatorMap[indicator.code].actualId = indicator.id;
+					indicatorMap[key].actualId = indicator.id;
 				}
 			});
 

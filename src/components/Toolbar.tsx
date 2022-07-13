@@ -28,7 +28,7 @@ export const Toolbar = observer(() => {
 	const [loading, setLoading] = useState(false);
 	// const [showOrgUnit, setShowOrgUnit] = useState(true);
 
-	const showOrgUnit = store?.showOrgUnit;
+	const showOrgUnit = !store?.showOrgUnit;
 	// const [thematicAreas, setThematicAreas] = useState([]);
 	const initial = useRef(true);
 	const periodConsts: any = [
@@ -42,9 +42,6 @@ export const Toolbar = observer(() => {
 		value: y,
 	}));
 
-	const toggleOrgUnitSelect = (checked: boolean) => {
-		setShowOrgUnit(checked);
-	};
 
 	useEffect(() => {
 		if (!showOrgUnit && store?.hasSelectedOrgUnit)
@@ -69,35 +66,38 @@ export const Toolbar = observer(() => {
 		setObjectives([]);
 		store.setSelectedObjective([]);
 
-		if (store.selectedProjectArray.length == 0) return;
-
-		console.log("selectedProjectArray", store.selectedProjectArray);
-		const projects = store.projects.filter((p) =>
-			store.selectedProjectArray.includes(p.id)
-		);
-
-		const objectives = projects.flatMap((p) => p.objectives);
-		setObjectives(objectives);
-		console.log(
-			"xfs",
-			store.financialyearProjects,
-			store.selectedProjectArray
-		);
-		if (
-			projects.some((p) =>
-				store.financialyearProjects.some((fp) => fp.name == p.name)
-			)
-		) {
-			setYears(periodFilters);
-		} else {
-			setYears(periodFilters.concat(yearFilters));
+		if (store.selectedProjectArray.length > 0) {
+			console.log("selectedProjectArray", store.selectedProjectArray);
+			const projects = store.projects.filter((p) =>
+				store.selectedProjectArray.includes(p.id)
+			);
+	
+			const objectives = projects.flatMap((p) => p.objectives);
+			setObjectives(objectives);
+			console.log(
+				"xfs",
+				store.financialyearProjects,
+				store.selectedProjectArray
+			);
+			if (
+				projects.some((p) =>
+					store.financialyearProjects.some((fp) => fp.name == p.name)
+				)
+			) {
+				setYears(periodFilters);
+			} else {
+				setYears(periodFilters.concat(yearFilters));
+			}
 		}
-		if (initial.current && (store.isProjectManager || showOrgUnit)) {
-			store.setSelectedObjective([
-				"HJbIZqv0VNl",
-				"luRWrgWwVtQ",
-				"ox87dTItQfr",
-			]);
+
+		if (initial.current) { 
+			if (store.isProjectManager || showOrgUnit) {
+				store.setSelectedObjective([
+					"HJbIZqv0VNl",
+					"luRWrgWwVtQ",
+					"ox87dTItQfr",
+				]);
+			}
 			initial.current = false;
 		}
 	}, [store?.selectedProject]);

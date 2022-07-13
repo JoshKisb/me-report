@@ -33,7 +33,10 @@ export const ReportTable = observer(() => {
 
 	useEffect(() => {
 		console.log("checking state", store?.fieldsSelected);
-		if (!store || !store.fieldsSelected) return;
+		if (!store || !store.fieldsSelected) 
+			return;
+
+		console.log("fields sel", store.fieldsSelected)
 		setLoading(true);
 
 		store
