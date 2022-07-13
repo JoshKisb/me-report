@@ -227,29 +227,33 @@ export class Store {
 
 				const yearsArr = uniq(years.flatMap((y) => {
 					if (y === "THIS_FINANCIAL_YEAR")
-						return currFYear;
+						return {year: currFYear, financial: true };
 					else if (y === "LAST_FINANCIAL_YEAR")
-						return currFYear - 1;
+						return {year: currFYear - 1, financial: true};
 					else if (y === "LAST_5_FINANCIAL_YEARS")
 						return reverseRange(
 							new Date().getFullYear(),
 							new Date().getFullYear() - 5
-						);
-					else return y;					
+						).map(y => ({year: y, financial: true}));
+					else return {year: y, financial: false};					
 				}))
 
+				
+				console.log("yearArr", yearsArr)
 				indicatorMaps.forEach((indicatorGroup) => {
 					const indicatorMap = indicatorGroup.indicators;
 
 					const indicatorValues = Object.values(indicatorMap).flatMap(
 						(indicator: any) => {
-							return yearsArr.map((year) => {
+							return yearsArr.map((yearObj) => {
 								let qVals = [];
 								let qTVals = [];
-								let systemTarget = 0;
+								let systemTarget: TotalNum = 0;
 								let systemActual = 0;
 								let totalActual: TotalNum = 0;
 								let totalTarget: TotalNum = 0;
+								const year = yearObj.year;
+								const hasOctPE = yearObj.financial;
 
 								const actualYrRow = result.rows.find(
 									(row) =>
@@ -282,20 +286,23 @@ export class Store {
 								// console.log("xxx", year, targetFYrRow)
 
 								systemTarget = targetYrRow?.[indexes.value] ?? targetFYrRow?.[indexes.value];
-								let hasOctPE = false;
-								if (!!targetFYrRow) {
-									hasOctPE = true
-									// console.log("zz", systemTarget)
-								}
+								systemTarget = !!systemTarget ? parseFloat(systemTarget.toString()): null;
+								// let hasOctPE = false;
+								// if (!!targetFYrRow) {
+								// 	hasOctPE = true
+								// 	// console.log("zz", systemTarget)
+								// }
 
 								let totalNA = 0;
 								let totalDA = 0;
 								let totalNT = 0;
 								let totalDT = 0;
 
+								// console.log("--------------")
+								// console.log("periods", quarterPeriods(year, hasOctPE).slice(1))
 								quarterPeriods(year, hasOctPE).slice(1).forEach((pe, i) => {
 									// const pe = `${year}Q${i + 1}`;
-									// console.log("pe", pe);
+									// console.log("pe", pe, i);
 
 									// Actual
 									const actualRow = result.rows.find(

@@ -345,7 +345,7 @@ export const ReportTable = observer(() => {
 			<div className="report">
 				
 				{!!store.fieldsSelected && !loading && !!indicators ? (
-					<div>
+					<div className="table-responsive">
 						<table className="report-table table table-bordered">
 							<thead className="table-dark">
 								<tr>

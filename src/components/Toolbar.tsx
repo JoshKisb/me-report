@@ -44,12 +44,13 @@ export const Toolbar = observer(() => {
 
 
 	useEffect(() => {
-		if (!showOrgUnit && store?.hasSelectedOrgUnit)
+		if (!showOrgUnit) {
 			store?.setSelectedOrgUnit([]);
+		}
 		if (showOrgUnit) {
 			store?.setSelectedOrgUnitGroup(null);
-			store?.setSelectedProject([]);
 		}
+		store?.setSelectedProject([]);
 	}, [showOrgUnit]);
 
 	const yearFilters = reverseRange(new Date().getFullYear(), 2018).map(
@@ -63,6 +64,7 @@ export const Toolbar = observer(() => {
 	// change objectives when project changes
 	useEffect(() => {
 		if (!store) return;
+		console.log("sel proj changed");
 		setObjectives([]);
 		store.setSelectedObjective([]);
 
@@ -91,7 +93,7 @@ export const Toolbar = observer(() => {
 		}
 
 		if (initial.current) { 
-			console.log("setObj show", showOrgUnit);
+			console.log("setObj show", showOrgUnit, store.selectedProject);
 			if (store.isProjectManager || showOrgUnit) {
 				store.setSelectedObjective([
 					"HJbIZqv0VNl",

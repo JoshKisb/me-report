@@ -57,6 +57,11 @@
 	// justify-content: center;
 }
 
+.table-responsive {
+	width: 100%;
+	overflow-x: auto;
+}
+
 .report-page {
 	padding: 24px 15px;
 	display: flex;
