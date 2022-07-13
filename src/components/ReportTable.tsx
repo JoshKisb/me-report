@@ -343,23 +343,8 @@ export const ReportTable = observer(() => {
 			</div>
 
 			<div className="report">
-				{loading && (
-					<div className="loadingWrapper">
-						<div
-							className="spinner-border"
-							style={{ width: "3rem", height: "3rem" }}
-							role="status"
-						></div>
-					</div>
-				)}
-
-				{!store.fieldsSelected && !loading && (
-					<h5 style={styles.noObjective}>
-						Select an organisation unit, project, objective and year
-						<br /> to view report
-					</h5>
-				)}
-				{!!store.fieldsSelected && !loading && !!indicators && (
+				
+				{!!store.fieldsSelected && !loading && !!indicators ? (
 					<div>
 						<table className="report-table table table-bordered">
 							<thead className="table-dark">
@@ -394,6 +379,25 @@ export const ReportTable = observer(() => {
 							</tbody>
 						</table>
 					</div>
+				): (
+					<div className="h-100 d-flex align-center">
+					{loading && (
+						<div className="loadingWrapper">
+							<div
+								className="spinner-border"
+								style={{ width: "3rem", height: "3rem" }}
+								role="status"
+							></div>
+						</div>
+					)}
+
+					{!store.fieldsSelected && !loading && (
+						<h5 style={styles.noObjective}>
+							Select an organisation unit, project, objective and year
+							<br /> to view report
+						</h5>
+					)}
+				</div>
 				)}
 			</div>
 		</div>

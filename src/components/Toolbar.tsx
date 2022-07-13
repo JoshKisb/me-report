@@ -30,9 +30,9 @@ export const Toolbar = observer(() => {
 
 	const showOrgUnit = !store?.showOrgUnit;
 	// const [thematicAreas, setThematicAreas] = useState([]);
-	const initial = useRef(true);
+	const initial = useRef(false);
 	const periodConsts: any = [
-		"LAST_5_FINANCIAL_YEARS",
+		// "LAST_5_FINANCIAL_YEARS",
 		"THIS_FINANCIAL_YEAR",
 		"LAST_FINANCIAL_YEAR",
 	];
@@ -80,7 +80,7 @@ export const Toolbar = observer(() => {
 				store.selectedProjectArray
 			);
 			if (
-				projects.some((p) =>
+				projects?.some((p) =>
 					store.financialyearProjects.some((fp) => fp.name == p.name)
 				)
 			) {
@@ -91,6 +91,7 @@ export const Toolbar = observer(() => {
 		}
 
 		if (initial.current) { 
+			console.log("setObj show", showOrgUnit);
 			if (store.isProjectManager || showOrgUnit) {
 				store.setSelectedObjective([
 					"HJbIZqv0VNl",
@@ -148,6 +149,7 @@ export const Toolbar = observer(() => {
 					// store.setSelectedOrgUnitGroup("zLC9Te91DUs");
 					store.setSelectedThematicArea(["iufplqKAzy8"]);
 					store.setSelectedProject(["JsOhoxYXnXd"]);
+					initial.current = true;
 				}
 			});
 		}
